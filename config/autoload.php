@@ -1,11 +1,12 @@
 <?php
 
-/**
- * Contao Open Source CMS
+/*
+ * This file is part of Marko Cupic IVM Package.
  *
- * Copyright (c) 2005-2018 Leo Feyer
- *
- * @license LGPL-3.0+
+ * (c) Marko Cupic, 19.03.2019
+ * @author Marko Cupic <https://github.com/markocupic/ivm_import>
+ * @contact m.cupic@gmx.ch
+ * @license Commercial
  */
 
 /**

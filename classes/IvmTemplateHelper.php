@@ -1,20 +1,18 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Marko
- * Date: 19.03.2019
- * Time: 07:56
+
+/*
+ * This file is part of Marko Cupic IVM Package.
+ *
+ * (c) Marko Cupic, 19.03.2019
+ * @author Marko Cupic <https://github.com/markocupic/ivm_import>
+ * @contact m.cupic@gmx.ch
+ * @license Commercial
  */
 
 namespace Markocupic\Ivm;
 
-use Contao\Config;
 use Contao\Database;
-use Contao\File;
-use Contao\Folder;
 use Contao\StringUtil;
-use Contao\Input;
-use Contao\System;
 
 /**
  * Class IvmTemplateHelper
