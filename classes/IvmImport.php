@@ -51,6 +51,9 @@ class IvmImport
      * Normally the script will be launched by a cronjob
      * https://yourhost.de?ivmImport=true or https://yourhost.de?ivmImport=true&force=true
      * If you run the cronjob with the force=true parameter, the download folder will be purged first
+     * Best practice:
+     * Call the script each day at midnight with the force parameter=true,
+     * afterwards you call the script hourly without the force parameter
      */
     public function importDatabase()
     {
