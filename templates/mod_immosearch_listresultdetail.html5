@@ -1,0 +1,706 @@
+<a href="<?=$this->jumpTo;?>" class="btn btn-primary pull-right" title="zurück zur Übersicht" style="margin-top:20px; margin-bottom:20px; margin-right:-2%;">zurück zur Übersicht</a>
+<script>
+	console.log($('body').width());
+ 	
+</script>
+
+<style>
+	.left { float: left; }
+	.clear { clear: both; }
+	.mTop10 { margin-top:10px; }
+	.mLeft10 { margin-left:5px; }
+	.bold { font-weight: bold; }
+	.pointer { cursor:pointer; }
+	
+	.allBox {  max-width:700px; margin-left:auto; margin-right:auto; }
+	
+	.blackBG {
+		position:fixed;
+		z-index:1001;
+		background-color:black;
+		-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)"; filter:alpha(opacity=80); -moz-opacity:0.8; -khtml-opacity:0.8; opacity:0.8;
+		width:100%;
+		height:100%;
+		top:0;
+		left:3000px;
+		margin:0;
+		padding:0;
+		display:none;
+	}
+	
+	.closeBtn {
+		position:absolute;
+		right:0;
+		top:0;
+		padding:12px;
+		font-weight:bold;
+		font-size:24px;
+		background-color:white;
+		-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)"; filter:alpha(opacity=80); -moz-opacity:0.8; -khtml-opacity:0.8; opacity:0.8;
+	}
+	
+	.imgBox {
+		position:fixed;
+		z-index:1002;
+		border:4px solid #fff;
+		left:3000px;
+		margin:0;
+		padding:0;
+		display:none;
+	}
+	
+	.detailBox {
+		width: 440px;
+		padding: 20px;
+		background-color: #eee;
+	}
+	
+	.backBtn {
+		width: 220px;
+		height: 40px;
+		padding: 0px;
+		margin-left: 20px;
+		background-color: #eee;
+	}
+	
+	.backBtn a {
+		display:block;
+		width:100%;
+		height:100%;
+		text-align:center;
+		padding-top:9px;
+		font-size:18px;
+		color:#999;
+	}
+	
+	.backBtn a:hover {
+		font-size:18px;
+		color:#eee;	
+		background-color:#999;
+	}
+	
+	.picBox {
+		width: 220px;
+		padding: 10px;
+		margin-top: 20px;
+		margin-left: 20px;
+		background-color: #eee;
+	}
+	
+	.apBox {
+		width: 220px;
+		padding: 10px;
+		margin-top: 20px;
+		margin-left: 20px;
+		background-color: #eee;
+	}
+	
+	.map {
+		width:100%;
+		height:300px;
+	}
+	
+	.check {
+		color:#137524;
+	}
+	
+	.h1 { font-size: 16px !important; font-weight: bold; margin-left:16px; text-shadow: #ffffff 1px 1px 2px }
+	.h2 { font-size: 14px !important; font-weight: bold; }
+	.h3 { font-size: 13px !important; font-weight: 300; }
+	legend { font-size: 18px; }
+	table { font-size: 13px; }
+	p { font-size: 16px; }
+	
+	a:hover { color: #777; font-weight:bold; text-decoration:underline; }
+	
+	.brPic { display:none; }
+	
+	.item        { text-align:center; background-color: #eee; padding-top:10px;padding-bottom:10px; margin-bottom:20px; margin-left:2%; margin-right:2%; width:20%; }
+	
+    .item > h3 { font-size:24px; font-weight:bold; margin-top:-6px; }
+    .item > h4 { font-size:14px; }
+	
+	.shorten-long-text{
+	   white-space: nowrap;
+	   overflow: hidden;
+	   width: 100%;
+	   text-overflow: ellipsis;
+	}
+	
+	.box
+	{
+		background-color:#fff; 
+		border: 1px solid #dddddd; 
+		padding-left: 12px;
+    	padding-right: 12px;
+	}
+	
+	.clicksBox {
+		background-color:#fff; 
+		border: 1px solid #dddddd; 
+		width:24%; 
+		float:left;
+		margin-right:1%; 
+		margin-top:10px;
+		padding-left: 12px;
+    	padding-right: 12px;
+	}
+	
+	.clicksBoxPic {
+		padding-left:0;
+		margin-bottom:2px;
+		max-height:100px;
+		min-height:100px;
+		overflow:hidden;
+	}
+
+@media (max-width: 1200px) {
+	.clicksBox { width:32%; }
+}
+
+@media (max-width: 680px) {
+	.clicksBox { width:48%; margin-right: 2%; }
+}
+
+@media (max-width: 360px) {
+	.clicksBox { width:100%; margin-right: 0; }
+	.clicksBoxPic {
+		max-height:150px;
+		min-height:150px;
+	}
+}
+
+@media (max-width: 730px) {
+	.detailBox, .apBox, .picBox, .backBtn  { width:100%; margin-left:0px; float:none; }
+	.minW { min-width:100px; }
+	.picBoxContent { width:200px; margin-left:auto; margin-right:auto; }
+	.brPic { display:block; }
+}
+
+@media (max-width: 767px) {
+	.item { width:44%; float: left; margin-left:3%; }
+    #headline { margin: 0; }
+}
+	
+</style>
+
+<?php 
+	if(strpos($this->phpself,'?') != FALSE) {
+		$link = $this->phpself.'&wid=';
+		$sortKind = '&';
+	} else {
+		$link = $this->phpself.'?wid=';
+		$sortKind = '?';
+	}
+?>
+<div id="blackBG" class="blackBG" onclick="javascript:closePic()"></div>
+<div id="headline">
+	<h1 ><?=$this->wohnung['title']?></h1>
+	<h2 ><?=$this->wohnung['str']?> <?=$this->wohnung['hnr']?>, <?=$this->wohnung['plz']?> <?=$this->wohnung['ort']?></h2>
+</div>
+
+
+<!-- Warmmiete Kaltmiete Zimmer Wohnfläche-->
+<div class="rs-columns ce_rs_columns_start">
+
+	<div class="rs-column -large-col-4-1 -large-first -large-first-row -medium-col-2-1 -medium-first -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
+<div class="ce_text block box">
+      <h4>Warmmiete</h4>
+		<h3><?=$this->wohnung['warm']?></h3> 
+</div>
+</div><div class="rs-column -large-col-4-1 -large-first-row -medium-col-2-1 -medium-last -medium-first-row -small-col-1-1 -small-first -small-last">
+<div class="ce_text blockk box">
+      <h4>Kaltmiete</h4>
+		<h3><?=$this->wohnung['kalt']?></h3> 
+ </div>
+</div><div class="rs-column -large-col-4-1 -large-first-row -medium-col-2-1 -medium-first -small-col-1-1 -small-first -small-last">
+<div class="ce_text block box">
+
+     <h4>Zimmer</h4>
+		<h3><?=$this->wohnung['zimmer']?></h3>
+  </div>
+</div><div class="rs-column -large-col-4-1 -large-last -large-first-row -medium-col-2-1 -medium-last -small-col-1-1 -small-first -small-last">
+<div class="ce_text block box">
+ <h4>Wohnfläche</h4>
+<h3><?=$this->wohnung['flaeche']?></h3>
+</div>
+</div></div>
+<!--  -->
+<p></p>
+<!-- Bild Ausstattung -->
+<div class="rs-columns ce_rs_columns_start">
+
+	<div class="rs-column -large-col-2-1 -large-first -large-first-row -medium-col-1-1 -medium-first -medium-last -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
+<div class="ce_image klasse block">
+
+  <figure class="image_container">
+   <a class="cboxElement" href="./files/Wohnungsangebote/<?=$this->pics[0]['name']?>" data-lightbox="123456">
+	<img src="./files/Wohnungsangebote/<?=$this->pics[0]['name']?>" class="lazyloaded" alt="<?=$this->wohnung['title']?>" title="<?=$this->wohnung['title']?>">
+</a>
+  </figure>
+  
+    <figure class="image_container">
+  <a class="cboxElement" href="./files/Wohnungsangebote/<?=$this->pics[1]['name']?>">
+  <?php for ( $i = 1 ; $i < count($this->pics) ; $i++ ) : ?>
+		<img src="./files/Wohnungsangebote/<?=$this->pics[$i]['name']?>" class="lazyloaded" alt="<?=$this->wohnung['title']?>" title="<?=$this->wohnung['title']?>" >
+	<?php endfor; ?>
+	</a>
+  </figure>
+
+</div>
+
+
+
+</div><div class="rs-column -large-col-2-1 -large-last -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
+<div class="ce_text block">
+
+  
+  
+     	<p>
+			<h3 data-icon="✏">
+				<span class="icon-links-label">Ausstattung</span>
+			</h3>
+		</p>
+		<p><?=$this->wohnung['beschr']?></p>
+		</fieldset>
+		<?php if($this->wohnung['beschr_lage'] != null ) : ?>
+		<p>
+			<h3 data-icon="">
+				<span class="icon-links-label">Lage</span>
+			</h3>
+		</p>
+        <p><?=$this->wohnung['beschr_lage']?></p></fieldset>
+        <?php endif; ?>
+  
+  
+
+</div>
+</div></div>
+
+<!-- Objektdaten 1 -->
+<h1>Objektdaten</h1>
+<div class="rs-columns ce_rs_columns_start">
+
+	<div class="rs-column -large-col-3-1 -large-first -large-first-row -medium-col-1-1 -medium-first -medium-last -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
+<div class="ce_text klasse block">
+  
+Objekt-Nr.: <?=$this->wohnung['objektnr']?></p>
+    			<strong>Kosten</strong><br>
+    			    Kaltmiete: <?=$this->wohnung['kalt']?><br>
+    				Nebenkosten: <?=$this->wohnung['nebenkosten']?><br>
+    				<?php if($this->wohnung['heizkosten'] != null ) : ?>
+    				<span>Heizkosten: <?=$this->wohnung['heizkosten']?></span><br>
+    				<?php endif; ?>
+    				Gesamtmiete: <?=$this->wohnung['warm']?><br>
+    				<?php if($this->wohnung['gen_anteile'] != null ) : ?>
+    				<span>Genossenschaftsanteile: <?=$this->wohnung['gen_anteile']?> &euro;</span><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['stellplatz'] != null ) : ?>
+    				<span>Stellplatz: <?=$this->wohnung['stellplatz']?></span><br>
+    				<?php endif; ?>
+<br>
+    			<strong>Objekt</strong><br>
+    				<?php if($this->wohnung['typ'] != null ) : ?>
+    				Typ: <?=$this->wohnung['typ']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['zustand'] != null ) : ?>
+    				Zustand: <?=$this->wohnung['zustand']?><br>
+    				<?php endif; ?>
+    				Wohnfläche: <?=$this->wohnung['flaeche']?><br>
+    				Zimmeranzahl: <?=$this->wohnung['zimmer']?><br>
+    				<?php if($this->wohnung['anz_schlafzimmer'] != null ) : ?>
+    				Schlafzimmer: <?=$this->wohnung['anz_schlafzimmer']?><br>
+    				<?php endif; ?>
+    				Etage: <?=$this->wohnung['etage']?><br>
+    				<?php if($this->wohnung['balkon_anz'] != null ) : ?>
+    				Balkon/Terrassen: <?=$this->wohnung['balkon_anz']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['baujahr'] != null ) : ?>
+    				Baujahr: <?=$this->wohnung['baujahr']?>
+    				<?php endif; ?>
+    			</p>
+    			<?php if($this->wohnung['verfuegbar'] != null ) : ?>
+				<p>Bezug ab</p>
+    			<p>
+    				<?=$this->wohnung['verfuegbar']?>
+    			</p>
+    			<?php endif; ?>
+    			<strong>Anschrift</strong><br>
+
+    				<?php if($this->wohnung['str'] != null ||  $this->wohnung['hnr'] != null) : ?>
+    					<?=$this->wohnung['str']?> <?=$this->wohnung['hnr']?><br>
+    				<?php endif; ?>
+    				<?=$this->wohnung['plz']?> <?=$this->wohnung['ort']?>
+
+  
+  
+
+</div>
+</div><div class="rs-column -large-col-3-1 -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
+<div class="ce_text block">
+
+  
+  
+Ausstattung</p>
+    			<?php if($this->wohnung['wg'] != null ) : ?>
+	                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['wg']?></p>
+	            <?php endif; ?>
+				<?php if($this->wohnung['balkon'] != null ) : ?>
+	                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['balkon']?></p>
+	            <?php endif; ?>
+	            <?php if($this->wohnung['lift'] != null ) : ?>
+	                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['lift']?></p>
+	            <?php endif; ?>
+				<?php if($this->wohnung['garten'] != null ) : ?>
+	                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['garten']?></p>
+	            <?php endif; ?>
+				<?php if($this->wohnung['keller'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['keller']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['barrierefrei'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['barrierefrei']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['moebliert'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['moebliert']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['rollstuhlgerecht'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['rollstuhlgerecht']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['raeume_veraenderbar'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['raeume_veraenderbar']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['wbs_sozialwohnung'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['wbs_sozialwohnung']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['altbau'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['altbau']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['neubau'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['neubau']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['reinigung'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['reinigung']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['senioren'] != null ) : ?>
+					<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['senioren']?></p>
+				<?php endif; ?>
+				<?php if($this->wohnung['dusche'] != null || $this->wohnung['wanne'] != null || $this->wohnung['fenster'] != null) : ?>
+				<p>Bad</p>
+    			<p>
+					<?php if($this->wohnung['dusche'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['dusche']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['wanne'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['wanne']?></p>
+					<?php endif; ?>
+    				<?php if($this->wohnung['fenster'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['fenster']?></p>
+		            <?php endif; ?>
+    			</p>
+				<?php endif; ?>
+				<?php if($this->wohnung['ebk'] != null || $this->wohnung['offen'] != null) : ?>
+				<p>Küche</p>
+    			<p>
+    				<?php if($this->wohnung['ebk'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['ebk']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['offen'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['offen']?></p>
+					<?php endif; ?>
+				</p>
+				<?php endif; ?>
+				<?php if($this->wohnung['haustiere'] != null ) : ?>
+				<p>Haustiere</p>
+    			<p>
+    				<?=$this->wohnung['haustiere']?>
+    			</p>
+    			<?php endif; ?>
+  
+  
+
+</div>
+</div><div class="rs-column -large-col-3-1 -large-last -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
+<div class="ce_text block">
+
+  
+  
+ <?php if($this->wohnung['fliesen'] != null || $this->wohnung['kunststoff'] != null || $this->wohnung['parkett'] != null || $this->wohnung['teppich'] != null || $this->wohnung['laminat'] != null || $this->wohnung['dielen'] != null || $this->wohnung['stein'] != null || $this->wohnung['estrich'] != null || $this->wohnung['doppelboden'] != null ) : ?>
+    			<p>Böden</p>
+    			<p>
+    				<?php if($this->wohnung['fliesen'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['fliesen']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['kunststoff'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['kunststoff']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['parkett'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['parkett']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['teppich'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['teppich']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['laminat'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['laminat']?></p>
+		            <?php endif; ?>
+		            <?php if($this->wohnung['dielen'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['dielen']?></p>
+		            <?php endif; ?>
+		            <?php if($this->wohnung['stein'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['stein']?></p>
+		            <?php endif; ?>
+		            <?php if($this->wohnung['estrich'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['estrich']?></p>
+		            <?php endif; ?>
+		            <?php if($this->wohnung['doppelboden'] != null ) : ?>
+		                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['doppelboden']?></p>
+		            <?php endif; ?>
+    			</p>
+    			<?php endif; ?>
+    			<p>Heizart</p>
+    			<p>
+    				<?php if($this->wohnung['fern'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['fern']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['etage_heizung'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['etage_heizung']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['zentral'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['zentral']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['gas'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['gas']?></p>
+					<?php endif; ?>
+					<?php if($this->wohnung['oel'] != null ) : ?>
+						<p><span class="check">✔</span>&nbsp;<?=$this->wohnung['oel']?></p>
+					<?php endif; ?>
+    			</p>
+    			<p>Energieausweis</p>
+    				<?php if($this->wohnung['e_typ'] != null ) : ?>
+    				Energieausweistyp: <?=$this->wohnung['e_typ']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['e_wert'] != null ) : ?>
+    				Energiekennwert (Wärme) in kWh/(a m²): <?=$this->wohnung['e_wert']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['fern'] != null ) : ?>
+    				Hauptenergieträger: <?=$this->wohnung['fern']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['gas'] != null ) : ?>
+    				Hauptenergieträger: <?=$this->wohnung['gas']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['oel'] != null ) : ?>
+    				Hauptenergieträger: <?=$this->wohnung['oel']?><br>
+    				<?php endif; ?>
+    				<?php if($this->wohnung['baujahr'] != null ) : ?>
+    				Baujahr: <?=$this->wohnung['baujahr']?><br>
+    				<?php endif; ?>
+    			<p>
+<a href="./files/Wohnungsangebote/<?=$this->wohnung['energieausweis']?>" target="_blank" class="button -single ce_rsce_tao_button -quaternary -small" title="Energieausweis öffnen">Energieausweis</a><br><br>
+    			
+  <?php if(isset($this->wohnung['expose']) && $this->wohnung['expose'] != null) : ?>
+<a href="./files/Wohnungsangebote/<?=$this->wohnung['expose']?>" target="_blank" class="button -single ce_rsce_tao_button -quaternary -small" title="Exposé öffnen" style="margin-top:20px; margin-bottom:20px; margin-left:-2%;">Exposé</a>
+<?php endif; ?>
+</p>  
+
+</div>
+</div></div>
+
+<!-- Objektdaten -->
+
+
+
+<div class="rs-columns ce_rs_columns_start">
+
+	<div class="rs-column -large-col-3-1 -large-first -large-first-row -medium-col-2-1 -medium-first -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
+<div class="ce_text klasse block">
+
+  
+  
+		<?php if($this->wohnung['ap']['pic'] != null) : ?>
+
+				<img src="<?=$this->wohnung['ap']['pic']?>" class="img-responsive" alt="Ansprechpartner <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?>">
+
+
+				
+  
+  
+
+</div>
+</div><div class="rs-column -large-col-3-2 -large-last -large-first-row -medium-col-2-1 -medium-last -medium-first-row -small-col-1-1 -small-first -small-last">
+<div class="ce_text block">
+
+  
+  
+<h2 style="font-size:24px;margin-top:10px;">Ansprechpartner</h2>
+				<span class="bold"><?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?></span><br>
+				<a href="tel:<?=$this->wohnung['ap']['tel']?>" title="<?=$this->wohnung['ap']['tel']?>"><span class="icon-phone" aria-hidden="true"></span> <?=$this->wohnung['ap']['tel']?></a><br/>
+		        <?php if($this->wohnung['ap']['mobile'] != null) : ?>
+		        <a href="tel:<?=$this->wohnung['ap']['mobile']?>" title="<?=$this->wohnung['ap']['mobile']?>"><span class="icon-phone" aria-hidden="true"></span> <?=$this->wohnung['ap']['mobile']?></a><br/>
+				<?php endif; ?>
+				<a href="fax:<?=$this->wohnung['ap']['fax']?>" title="<?=$this->wohnung['ap']['fax']?>"><span class="icon-fax" aria-hidden="true"></span> <?=$this->wohnung['ap']['fax']?></a><br/>
+		        <a href="mailto:<?=$this->wohnung['ap']['email']?>?subject=<?=$this->wohnung['title']?> ( ObjektNr: <?=$this->wohnung['objektnr']?> )" title="<?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?> eine E-Mail schreiben"><span class="icon-envelope" aria-hidden="true"></span> E-Mail schreiben</a>
+
+		<?php else : ?>
+			<h2 style="font-size:24px;margin-top:0px;">Ansprechpartner</h2>
+			<span class="bold"><?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?></span><br>
+			<a href="tel:<?=$this->wohnung['ap']['tel']?>" title="<?=$this->wohnung['ap']['tel']?>"><span class="icon-phone" aria-hidden="true"></span> <?=$this->wohnung['ap']['tel']?></a><br/>
+	        <?php if($this->wohnung['ap']['mobile'] != null) : ?>
+	        <a href="tel:<?=$this->wohnung['ap']['mobile']?>" title="<?=$this->wohnung['ap']['mobile']?>"><span class="icon-phone" aria-hidden="true"></span> <?=$this->wohnung['ap']['mobile']?></a><br/>
+			<?php endif; ?>
+			<a href="fax:<?=$this->wohnung['ap']['fax']?>" title="<?=$this->wohnung['ap']['fax']?>"><span class="icon-fax" aria-hidden="true"></span> <?=$this->wohnung['ap']['fax']?></a><br/>
+			<a href="mailto:<?=$this->wohnung['ap']['email']?>?subject=<?=$this->wohnung['title']?> ( ObjektNr: <?=$this->wohnung['objektnr']?> )" title="<?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?> eine E-Mail schreiben"><span class="icon-envelope" aria-hidden="true"></span> E-Mail schreiben</a>
+		<?php endif; ?>
+  
+  
+
+</div>
+</div></div>
+
+
+<div id="map" class="map">
+
+
+
+
+
+<div class="test">
+
+
+
+
+
+<?php if ( $this->wohnung['str'] ) : ?> 
+
+</div
+<?php endif; ?>
+
+
+
+
+<div class="clearfix"></div>
+
+<div class="row" style="border-bottom:1px solid #CCCCCC;margin-top:20px;padding-bottom:1px;">
+	<h4>Andere Nutzer interessierte auch</h4>
+</div>
+
+<div class="row itemContainer" style="margin-top:10px;">
+<?php foreach( $this->clickData as $wohnung ) : ?>
+	<div class="clicksBox clickable js-base64" data-extend="<?=$link.$wohnung['wid'];?>">
+		<h2 class="shorten-long-text" style="font-size:16px; font-weight:bold;"><?=$wohnung['title']?></h2>
+		<h1 class="shorten-long-text" style="font-size:14px;margin-top:-6px;"><?=$wohnung['strasse']?> <?=$wohnung['hnr']?><br><?=$wohnung['plz']?> <?=$wohnung['ort']?></h1>
+		<div class="clicksBoxPic">
+			<img src="./files/Wohnungsangebote/<?=$wohnung['startbild']?>" class="img-responsive" alt="<?=$wohnung['title']?>" >
+		</div>
+		<div class="" style="margin-top: 10px;">
+			<p>Kaltmiete: <b><?=$wohnung['kalt']?></b><br>
+			Zimmer: <b><?=$wohnung['zimmer']?></b><br>
+			Wohnfläche: <b><?=$wohnung['flaeche']?></b></p>
+		</div>
+		<div class="clearfix"></div>
+	</div>
+<?php endforeach; ?>
+</div>
+
+<?php if($test === true): ?>
+<?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('wid'))): ?>
+	<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByWid(\Contao\Input::get('wid')) as $image): ?>
+	<a href="<?= $image['path'] ?>" title="<?= $image['caption'] ?>" data-lightbox="gal_<?= $image['flat_id'] ?>">
+		<img src="<?= $image['thumb'] ?>" alt="<?= $image['name'] ?>">
+	</a>
+	<?php endforeach; ?>
+<?php endif; ?>
+<?php endif; ?>
+
+
+<script>
+
+	var buehneX;
+	var buehneY;
+
+	function getSize()
+	{
+		if(navigator.userAgent.indexOf('MSIE') > -1){
+			buehneX = document.documentElement.clientWidth;
+			buehneY = document.documentElement.clientHeight;
+		}
+		else
+		{
+			buehneX = window.innerWidth;
+			buehneY = window.innerHeight;
+		}		
+	}
+	
+	function showPic(pic, width, height)
+	{
+		getSize();
+		//alert(buehneX + '-' + buehneY);
+
+		$('#imgBoxPic').attr('src', pic);
+		
+		var pic_height = height;
+		var pic_width = width;
+		var faktor = pic_width/pic_height;
+		var faktor2 = pic_height/pic_width;
+		
+		var picMargin = 120;
+		if( buehneX < 700 ) picMargin = 20;
+		
+		while(pic_height > (buehneY - picMargin)) pic_height -= 10;
+		pic_width = pic_height*faktor;
+		while(pic_width > (buehneX - picMargin*2)) pic_width -= 10;
+		pic_height = pic_width*faktor2;
+		
+		$('#imgBoxPic').attr( { height: pic_height, width: pic_width});
+
+		$('#blackBG').css({	left: 0 }).show();
+		$('#imgBox').css({	
+
+			left: (buehneX - pic_width - 8) / 2 + 'px', 
+			top: (buehneY - pic_height - 8) / 2 + 'px' 
+		}).show();
+		
+		//alert('=' + ((buehneY - pic_height - 8) / 2));
+	}
+	
+	function closePic()
+	{
+		$('#blackBG').css({	left: buehneX + 'px' }).hide();
+		$('#imgBox').css({	left: buehneX + 'px' }).hide();
+	}
+	
+</script>
+
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyAIyVVHhhSaS7t6cOGZ9C6sfdqfuX9dyH4"></script>
+<script type="text/javascript">
+	var map;
+    var geocoder;
+	function initialize() {
+		var myLatlng = new google.maps.LatLng('51.868260', '12.653510');
+ 		var mapOptions = {
+    		zoom: 15,
+    		center: myLatlng,
+    		mapTypeId: google.maps.MapTypeId.ROADMAP
+  		};
+  		
+  		map = new google.maps.Map(document.getElementById('map'),
+      			mapOptions);
+				
+		geocoder = new google.maps.Geocoder();
+				
+		var address = "<?=$this->wohnung['str']?> <?=$this->wohnung['hnr']?>,<?=$this->wohnung['plz']?> <?=$this->wohnung['ort']?>";
+		geocoder.geocode( { 'address': address }, function(result, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+				map.setCenter(result[0].geometry.location);
+				var marker = new google.maps.Marker({
+					map:      map,
+					position: result[0].geometry.location,
+					title:    "<?=$this->wohnung['title']?>"
+				});
+			}
+		});
+	}
+	
+	<?php if ( $this->wohnung['str'] ) : ?> 
+	google.maps.event.addDomListener(window, 'load', initialize);
+	<?php endif; ?>
+</script>
+</hr>
