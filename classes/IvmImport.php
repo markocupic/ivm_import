@@ -46,7 +46,11 @@ class IvmImport
     protected $imagePath;
 
     /**
-     * import database from https://wg-dessau.ivm-professional.de
+     * Import database from https://wg-dessau.ivm-professional.de
+     * Contao initializeSystem Hook
+     * Normally the script will be launched by a cronjob
+     * https://yourhost.de?ivmImport=true or https://yourhost.de?ivmImport=true&force=true
+     * If you run the cronjob with the force=true parameter, the download folder will be purged first
      */
     public function importDatabase()
     {
@@ -61,6 +65,7 @@ class IvmImport
 
             if (strlen(Input::get('force')))
             {
+                echo "Import Skript mit dem force=true PArameter aufgerufen...\n\n";
                 $this->force = true;
             }
 
