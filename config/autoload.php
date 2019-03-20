@@ -23,5 +23,8 @@ ClassLoader::addClasses(array
     'Markocupic\Ivm\IvmImport'         => 'system/modules/ivm_import/classes/IvmImport.php',
     'Markocupic\Ivm\IvmTemplateHelper' => 'system/modules/ivm_import/classes/IvmTemplateHelper.php',
 
+    // Hooks
+    'Markocupic\Ivm\InitializeSystem'  => 'system/modules/ivm_import/hooks/InitializeSystem.php',
+
 ));
 

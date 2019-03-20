@@ -12,4 +12,4 @@
 /**
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['initializeSystem'][] = array('Markocupic\Ivm\IvmImport', 'importDatabase');
+$GLOBALS['TL_HOOKS']['initializeSystem'][] = array('Markocupic\Ivm\InitializeSystem', 'importIvmDatabase');
