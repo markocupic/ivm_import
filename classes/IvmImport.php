@@ -238,14 +238,9 @@ class IvmImport
                         if ($this->force || !file_exists($this->imagePath . $value['flat_plot']))
                         {
                             echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
-                            $ch = curl_init();
-                            curl_setopt_array($ch, array(
-                                CURLOPT_FILE    => fopen($this->imagePath . $value['flat_plot2'], 'w'),
-                                CURLOPT_TIMEOUT => 60 * 5,
-                                CURLOPT_URL     => $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot2']) . '&w=1024',
-                            ));
-                            curl_exec($ch);
-                            curl_close($ch);
+                            $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot2']) . '&w=1024';
+                           $curloptFile = $this->imagePath . $value['flat_plot2'];
+                            $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                         }
                         $pics[] = $value['flat_plot2'];
                     }
@@ -373,17 +368,11 @@ class IvmImport
         }
     }
     
-    private function curlFileDownload($target $dest){
-        
-        
-//The resource that we want to download.
-$fileUrl = 'http://example.com/img/logo.png';
- 
-//The path & filename to save to.
-$saveTo = 'logo.png';
+    private function curlFileDownload($curloptFile, $curloptUrl, $curloptTimeout = 30){
+
  
 //Open file handler.
-$fp = fopen($saveTo, 'w+');
+$fp = fopen($curloptFile, 'w+');
  
 //If $fp is FALSE, something went wrong.
 if($fp === false){
@@ -391,13 +380,13 @@ if($fp === false){
 }
  
 //Create a cURL handle.
-$ch = curl_init($fileUrl);
+$ch = curl_init($curloptUrl);
  
 //Pass our file handle to cURL.
 curl_setopt($ch, CURLOPT_FILE, $fp);
  
 //Timeout if the file doesn't download after 20 seconds.
-curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+curl_setopt($ch, CURLOPT_TIMEOUT, $curloptTimeout);
  
 //Execute the request.
 curl_exec($ch);
