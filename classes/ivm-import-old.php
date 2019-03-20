@@ -7,26 +7,9 @@ define('JSON_IVM_URL', 'https://wg-dessau.ivm-professional.de');
 define('IMAGE_PATH', './Wohnungsangebote/');
 
 // neuer Server
-$mysql_server = "mysql:host=localhost;dbname=usr_web26862749_34";
-$mysql_user = "web26862749";
-$mysql_pass = "pideagmbh";
-
-
-// Live-Server
-//$mysql_server = "mysql:host=localhost;dbname=usr_web26862749_34";
-//$mysql_user = "db501111u1";
-//$mysql_pass = "b!hgHzk?8P+C";
-
-// DEV-Server
-//$mysql_server = "mysql:host=localhost;dbname=usr_web26862749_43";
-//$mysql_user = "web26862749";
-//$mysql_pass = "pideagmbh";
-
-// Localhost
-//$mysql_server = "mysql:host=localhost;dbname=wgdessau";
-//$mysql_user = "root";
-//$mysql_pass = "x864lk";
-//$_GET["force"] = 1;
+$mysql_server = "mysql:host=localhost;dbname=####";
+$mysql_user = "####";
+$mysql_pass = "#####";
 
 echo '<pre>';
 
