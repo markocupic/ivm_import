@@ -15,7 +15,6 @@ use Contao\Database;
 use Contao\Date;
 use Contao\Folder;
 use Contao\StringUtil;
-use Contao\Input;
 use Contao\System;
 
 /**
@@ -56,22 +55,19 @@ class IvmImport
     protected $imagePath;
 
     /**
-     * Import database from https://wg-dessau.ivm-professional.de
-     * Contao initializeSystem Hook
-     * Normally the script will be launched by a cronjob
-     * https://yourhost.de?ivmImport=true or https://yourhost.de?ivmImport=true&force=true
-     * If you run the cronjob with the force=true parameter, the download folder will be purged first
-     * Best practice:
-     * Call the script each day at midnight with the force parameter=true,
-     * afterwards you call the script hourly without the force parameter
+     *
+     * @param string $page
+     * @param bool $blnForce
+     * @param bool $blnPurgeDownloadFolder
+     * @throws \Exception
      */
-    public function importIvmDatabase($page = 1, $blnForce = false, $blnPurgeDownloadFolder = false)
+    public function importIvmDatabase($page = '', $blnForce = false, $blnPurgeDownloadFolder = false)
     {
         $startTime = time();
 
         echo '<pre>';
 
-        $this->page = $page > 1 ? $page : 1;
+        $this->page = $page >= 1 ? $page : '';
         if ($this->page)
         {
             echo sprintf("Import Skript mit dem page=%s Parameter aufgerufen...", $this->page) . "\n\n";
@@ -106,16 +102,21 @@ class IvmImport
         }
 
         // Purge download folder
-        if ($this->blnPurgeDownloadFolder)
+        if ($this->blnPurgeDownloadFolder && ($this->page == '' || $this->page == 1))
         {
             echo "Download Verzeichnis leeren " . $this->downloadFolder . "...\n\n";
             $objDownloadFolder->purge();
         }
 
         // Truncate tables
-        echo "Tabellen is_details, is_wohnungen, is_wohngebiete werden geleert...\n\n";
-        Database::getInstance()->query('TRUNCATE TABLE is_details');
-        Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
+        if($this->page == 1 || $this->page == '')
+        {
+            echo "Tabelle is_details wird geleert...\n";
+            echo "Tabelle is_wohnungen wird geleert...\n";
+            Database::getInstance()->query('TRUNCATE TABLE is_details');
+            Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
+        }
+        echo "Tabelle is_wohngebiete wird geleert...\n\n";
         Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
         // Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
 
@@ -180,14 +181,19 @@ class IvmImport
         }
 
         // Import Wohnungen
+        $arrCurlOpt = array('tafel' => 0);
+        if($this->page != '')
+        {
+            $arrCurlOpt['search_page'] = $this->page;
+        }
+        if($this->page == '')
+        {
+            $arrCurlOpt['limit'] = 'all';
+        }
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl . "/modules/json/json_search.php");
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, array(
-            'search_page' => 1,
-            'limit'       => 'all', //Das ist sehr wichtig!!!!!!!!!!!!!!!!!
-            'tafel'       => 0
-        ));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $arrCurlOpt);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
         curl_close($ch);
