@@ -311,8 +311,8 @@ class IvmImport
                     "hnr"             => $value['streetnumber'] ? $value['streetnumber'] : '',
                     "plz"             => $value['zip'],
                     "ort"             => $value['city'],
-                    "nk"              => $this->formatNumber($value['charges']),
-                    "hk"              => $this->formatNumber($value['heating']),
+                    "nk"              => $this->formatNumber2($value['charges']),
+                    "hk"              => $this->formatNumber2($value['heating']),
                     //"hk_in" => $value['heating']==0 ? 'Ja' : 'Nein',
                     "hk_in"           => 'Ja',
                     "beschr"          => $value['objectdescription'],
@@ -340,8 +340,8 @@ class IvmImport
                     "wg"              => '',
                     "expose"          => 'expose_' . $value['flat_id'] . '.pdf',
                     "eausweis"        => $value['flat_enev_ausweisart'] ? $value['flat_enev_ausweisart'] : '',
-                    "everbrauchswert" => $this->formatNumber($value['flat_enev_verbrauchswert']),
-                    "ebedarfswert"    => $this->formatNumber($value['flat_enev_ebedarfswert']),
+                    "everbrauchswert" => $this->formatNumber2($value['flat_enev_verbrauchswert']),
+                    "ebedarfswert"    => $this->formatNumber2($value['flat_enev_ebedarfswert']),
                     "eheizung"        => $value['flat_lights'] ? $value['flat_lights'] : '',
                     "ausstattung"     => join(', ', $environment)
                 );
@@ -354,11 +354,13 @@ class IvmImport
                         "gid"         => $arr_wohngebiete[$value['district_name']],
                         "aid"         => $ansprechpartner['id'] ? $ansprechpartner['id'] : 1,
                         "zimmer"      => $value['rooms'],
-                        "flaeche"     => $this->formatNumber($value['space']),
-                        "warm"        => $this->formatNumber($value['rent_all']),
-                        "kalt"        => $this->formatNumber($value['rent']),
+                        "flaeche"     => $this->formatNumber2($value['space']),
+                        //"warm"        => $this->formatNumber($value['rent_all']),
+                        "warm"        => $this->formatNumber2($value['rent_all']),
+                        //"kalt"        => $this->formatNumber($value['rent']),
+                        "kalt"        => $this->formatNumber2($value['flat_rent']),
                         "etage"       => preg_replace("/\.Etage/", "", $value['floor']),
-                        "kaution"     => $this->formatNumber($value['flat_deposit']),
+                        "kaution"     => $this->formatNumber2($value['flat_deposit']),
                         "dusche"      => $environment[7] ? "true" : "",
                         "wanne"       => $environment[8] ? "true" : "",
                         "balkon"      => $environment[14] ? "Balkon" : ($environment[16] ? "Terrasse" : ""),
@@ -449,6 +451,18 @@ class IvmImport
     private function formatNumber($number)
     {
         return doubleval(preg_replace("/,/", ".", $number));
+    }
+
+    /**
+     * @param $number
+     * @return float
+     */
+    private function formatNumber2($number)
+    {
+        $number = (string) $number;
+        $number =  preg_replace("/\./", "", $number);
+        echo $number;
+return $number;
     }
 }
 

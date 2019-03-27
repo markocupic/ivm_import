@@ -600,7 +600,7 @@ Ausstattung</p>
 <?php endforeach; ?>
 </div>
 
-<?php if($test === true): ?>
+<!-- Galerie -->
 <?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('wid'))): ?>
 	<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByWid(\Contao\Input::get('wid')) as $image): ?>
 	<a href="<?= $image['path'] ?>" title="<?= $image['caption'] ?>" data-lightbox="gal_<?= $image['flat_id'] ?>">
@@ -608,7 +608,7 @@ Ausstattung</p>
 	</a>
 	<?php endforeach; ?>
 <?php endif; ?>
-<?php endif; ?>
+
 
 
 <script>
