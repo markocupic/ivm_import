@@ -11,12 +11,6 @@
 
 namespace Markocupic\Ivm;
 
-use Contao\Database;
-use Contao\Date;
-use Contao\Folder;
-use Contao\StringUtil;
-use Contao\System;
-
 /**
  * Class IvmImport
  * @package Markocupic\Ivm
@@ -89,14 +83,14 @@ class IvmImport
         $this->imagePath = TL_ROOT . '/' . $this->downloadFolder;
 
         // Create download folder and unprotect it
-        $objDownloadFolder = new Folder($this->downloadFolder);
+        $objDownloadFolder = new \Folder($this->downloadFolder);
         if (version_compare(VERSION, '3.5', '>'))
         {
             if (!file_exists(TL_ROOT . '/' . $this->downloadFolder . '/.public'))
             {
                 echo "Mache Download-Ordner " . $this->downloadFolder . " öffentlich...\n\n";
                 $fp = fopen(TL_ROOT . '/' . $this->downloadFolder . '/.public', 'w');
-                fwrite($fp, sprintf('Erstellt am %s durch %s Linie %s', Date::parse('Y.m.d'), __METHOD__, __LINE__));
+                fwrite($fp, sprintf('Erstellt am %s durch %s Linie %s', \Date::parse('Y.m.d'), __METHOD__, __LINE__));
                 fclose($fp);
             }
         }
@@ -109,26 +103,26 @@ class IvmImport
         }
 
         // Truncate tables
-        if($this->page == 1 || $this->page == '')
+        if ($this->page == 1 || $this->page == '')
         {
             echo "Tabelle is_details wird geleert...\n";
             echo "Tabelle is_wohnungen wird geleert...\n";
-            Database::getInstance()->query('TRUNCATE TABLE is_details');
-            Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
+            \Database::getInstance()->query('TRUNCATE TABLE is_details');
+            \Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
         }
         echo "Tabelle is_wohngebiete wird geleert...\n\n";
-        Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
-        // Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
+        \Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
+        // \Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
 
         // Add columns is_wohnungen.flat_id & is_wohnungen.gallery_img
-        if (!Database::getInstance()->fieldExists('flat_id', 'is_wohnungen'))
+        if (!\Database::getInstance()->fieldExists('flat_id', 'is_wohnungen'))
         {
-            Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `flat_id` INT NOT NULL');
+            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `flat_id` INT NOT NULL');
         }
 
-        if (!Database::getInstance()->fieldExists('gallery_img', 'is_wohnungen'))
+        if (!\Database::getInstance()->fieldExists('gallery_img', 'is_wohnungen'))
         {
-            Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `gallery_img` BLOB NOT NULL');
+            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `gallery_img` BLOB NOT NULL');
         }
 
         // Let's start the import process...
@@ -136,12 +130,12 @@ class IvmImport
 
         // Get Ausstattungen
         $data_raw = file_get_contents($this->jsonIvmUrl . "/modules/json/json_environments.php");
-        $ausstattungen = StringUtil::deserialize(json_decode($data_raw), true);
+        $ausstattungen = self::deserialize(json_decode($data_raw), true);
         echo count($ausstattungen) . " Ausstattungen geladen\n\n";
 
         // Import Wohngebiete
         $data_raw = file_get_contents($this->jsonIvmUrl . "/modules/json/json_districts.php");
-        $data = StringUtil::deserialize(json_decode($data_raw), true);
+        $data = self::deserialize(json_decode($data_raw), true);
 
         $arr_wohngebiete = array();
         echo "Importiere Wohngebiete...\n";
@@ -151,7 +145,7 @@ class IvmImport
                 "id"         => $key,
                 "wohngebiet" => $value['name']
             );
-            $stm = Database::getInstance()->prepare("INSERT INTO is_wohngebiete %s")->set($set)->execute();
+            $stm = \Database::getInstance()->prepare("INSERT INTO is_wohngebiete %s")->set($set)->execute();
             if ($stm->affectedRows)
             {
                 $arr_wohngebiete[$value['name']] = $stm->insertId;
@@ -175,18 +169,19 @@ class IvmImport
         $top_wohnungen = array();
         $data = json_decode($response, true);
         echo count($data) . " Top-Wohnungen importiert.\n\n";
-        foreach ($data['flats'] as $key => $value)
-        {
-            $top_wohnungen[$value['flat_id']] = true;
-        }
+        if (!empty($data['flats']) && is_array($data['flats']))
+            foreach ($data['flats'] as $key => $value)
+            {
+                $top_wohnungen[$value['flat_id']] = true;
+            }
 
         // Import Wohnungen
         $arrCurlOpt = array('tafel' => 0);
-        if($this->page != '')
+        if ($this->page != '')
         {
             $arrCurlOpt['search_page'] = $this->page;
         }
-        if($this->page == '')
+        if ($this->page == '')
         {
             $arrCurlOpt['limit'] = 'all';
         }
@@ -226,7 +221,7 @@ class IvmImport
                 echo "Importiere Galerie: " . $gallery_img . "...\n";
 
                 //$value['environmet'] thats a typo, but it is made by IVM-Professional ;-);-)
-                $environment = StringUtil::deserialize(urldecode($value['environmet']), true);
+                $environment = self::deserialize(urldecode($value['environmet']), true);
 
                 if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['image']))
                 {
@@ -242,13 +237,13 @@ class IvmImport
 
                 if ($value['flat_plot'])
                 {
-                    if ($this->blnForce || !file_exists($this->imagePath .'/' . $value['flat_plot']))
+                    if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['flat_plot']))
                     {
                         if (strlen($value['flat_plot']))
                         {
                             echo "Lade Grundriss " . $value['flat_plot'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot']) . '&w=1024';
-                            $curloptFile = $this->imagePath . '/' .$value['flat_plot'];
+                            $curloptFile = $this->imagePath . '/' . $value['flat_plot'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                         }
                     }
@@ -257,31 +252,31 @@ class IvmImport
 
                 if ($value['flat_plot2'])
                 {
-                    if ($this->blnForce || !file_exists($this->imagePath . '/' .$value['flat_plot2']))
+                    if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['flat_plot2']))
                     {
                         if (strlen($value['flat_plot2']))
                         {
                             echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot2']) . '&w=1024';
-                            $curloptFile = $this->imagePath . '/' .$value['flat_plot2'];
+                            $curloptFile = $this->imagePath . '/' . $value['flat_plot2'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                         }
                     }
                     $pics[] = $value['flat_plot2'];
                 }
 
-                if ($this->blnForce || !file_exists($this->imagePath . '/' .'expose_' . $value['flat_id'] . '.pdf'))
+                if ($this->blnForce || !file_exists($this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf'))
                 {
                     echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
                     $curloptUrl = $this->jsonIvmUrl . '/make_pdf/make_pdf.php?flat_id=' . $value['flat_id'];
-                    $curloptFile = $this->imagePath . '/' .'expose_' . $value['flat_id'] . '.pdf';
+                    $curloptFile = $this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf';
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                 }
 
                 $ansprechpartner = null;
                 if ($value['arranger'] && $value['arranger_email'])
                 {
-                    $stm = Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%" . $value['arranger'] . "%' OR email LIKE '%" . $value['arranger_email'] . "%'")->limit(1)->execute();
+                    $stm = \Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%" . $value['arranger'] . "%' OR email LIKE '%" . $value['arranger_email'] . "%'")->limit(1)->execute();
                     if ($stm->numRows)
                     {
                         $ansprechpartner = $stm->row();
@@ -289,7 +284,7 @@ class IvmImport
                 }
                 else
                 {
-                    $stm = Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%Wohnungsgenossenschaft%'")->limit(1)->execute();
+                    $stm = \Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%Wohnungsgenossenschaft%'")->limit(1)->execute();
                     if ($stm->numRows)
                     {
                         $ansprechpartner = $stm->row();
@@ -345,7 +340,7 @@ class IvmImport
                     "eheizung"        => $value['flat_lights'] ? $value['flat_lights'] : '',
                     "ausstattung"     => join(', ', $environment)
                 );
-                $stm = Database::getInstance()->prepare("INSERT INTO is_details %s")->set($set)->execute();
+                $stm = \Database::getInstance()->prepare("INSERT INTO is_details %s")->set($set)->execute();
                 if ($stm->affectedRows)
                 {
                     $wid = $stm->insertId;
@@ -371,12 +366,12 @@ class IvmImport
                         "flat_id"     => $value['flat_id'],
                         "gallery_img" => $gallery_img,
                     );
-                    Database::getInstance()->prepare("INSERT INTO is_wohnungen %s")->set($set)->execute();
+                    \Database::getInstance()->prepare("INSERT INTO is_wohnungen %s")->set($set)->execute();
                 }
             }
 
             echo "\n" . count($data['flats']) . " Wohnungen importiert\n";
-            System::log(count($data['flats']) . " Wohnungen importiert", __METHOD__, TL_GENERAL);
+            \System::log(count($data['flats']) . " Wohnungen importiert", __METHOD__, TL_GENERAL);
         }
         else
         {
@@ -384,7 +379,7 @@ class IvmImport
         }
 
         echo "\n" . sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime) . "\n";
-        System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
+        \System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
         echo '</pre>';
         exit();
     }
@@ -459,10 +454,27 @@ class IvmImport
      */
     private function formatNumber2($number)
     {
-        $number = (string) $number;
-        $number =  preg_replace("/\./", "", $number);
+        $number = (string)$number;
+        $number = preg_replace("/\./", "", $number);
         echo $number;
-return $number;
+        return $number;
+    }
+
+    /**
+     * @param $strArray
+     * @param bool $blnForce
+     * @return array|null|string
+     */
+    private static function deserialize($strArray, $blnForce = false)
+    {
+        if (version_compare(VERSION, 4.0, '<'))
+        {
+            return deserialize($strArray, $blnForce);
+        }
+        else
+        {
+            return \StringUtil::deserialize($strArray, $blnForce);
+        }
     }
 }
 

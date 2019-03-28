@@ -11,11 +11,8 @@
 
 namespace Markocupic\Ivm;
 
-use Contao\Database;
-use Contao\StringUtil;
-
 /**
- * Class IvmTemplateHelper
+ * Class IvmTemplHelper
  * @package Markocupic\Ivm
  */
 class IvmTemplateHelper
@@ -37,7 +34,7 @@ class IvmTemplateHelper
      */
     public static function getFlatIdFromWid($wid)
     {
-        $objWohnung = Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
+        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
         if ($objWohnung->numRows)
         {
             return $objWohnung->flat_id;
@@ -52,10 +49,10 @@ class IvmTemplateHelper
     public static function getGalleryArrayByWid($wid)
     {
         $arrGal = array();
-        $objWohnung = Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
+        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
         if ($objWohnung->numRows)
         {
-            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img);
+            $arrGallery = self::deserialize($objWohnung->gallery_img);
             if (!empty($arrGallery) && is_array($arrGallery))
             {
                 foreach ($arrGallery as $image)
@@ -70,7 +67,6 @@ class IvmTemplateHelper
                 }
             }
         }
-
         return $arrGal;
     }
 
@@ -80,17 +76,33 @@ class IvmTemplateHelper
      */
     public static function hasGallery($wid)
     {
-        $objWohnung = Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
+        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
         if ($objWohnung->numRows)
         {
-            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+            $arrGallery = self::deserialize($objWohnung->gallery_img, true);
             if (count($arrGallery >= 1))
             {
                 return true;
             }
         }
-
         return false;
+    }
+
+    /**
+     * @param $strArray
+     * @param bool $blnForce
+     * @return array|null|string
+     */
+    private static function deserialize($strArray, $blnForce = false)
+    {
+        if (version_compare(VERSION, 4.0, '<'))
+        {
+            return deserialize($strArray, $blnForce);
+        }
+        else
+        {
+            return \StringUtil::deserialize($strArray, $blnForce);
+        }
     }
 
 }
