@@ -277,6 +277,27 @@
 </div>
 </div></div>
 
+
+
+<?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('wid'))): ?>
+<!-- Galerie -->
+{{br}}
+<div class="flatGallery">
+	<div class="row itemContainer">
+		<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByWid(\Contao\Input::get('wid')) as $image): ?>
+		<div class="clicksBox" style="padding-top: 12px; padding-bottom:12px;">
+			<a href="<?= $image['path'] ?>" title="<?= $image['caption'] ?>" data-lightbox="gal_<?= $image['flat_id'] ?>">
+				<img style="width:100%;max-width: 100%; height:auto;" src="<?= $image['path'] ?>" alt="<?= $image['name'] ?>">
+				<!--<img style="width:100%;max-width: 100%; height:auto;" src="<?= $image['thumb'] ?>" alt="<?= $image['name'] ?>">-->
+			</a>
+		</div>
+		<?php endforeach; ?>
+	</div>
+</div>
+{{br}}
+<?php endif; ?>
+
+
 <!-- Objektdaten 1 -->
 <h1>Objektdaten</h1>
 <div class="rs-columns ce_rs_columns_start">
@@ -600,14 +621,7 @@ Ausstattung</p>
 <?php endforeach; ?>
 </div>
 
-<!-- Galerie -->
-<?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('wid'))): ?>
-	<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByWid(\Contao\Input::get('wid')) as $image): ?>
-	<a href="<?= $image['path'] ?>" title="<?= $image['caption'] ?>" data-lightbox="gal_<?= $image['flat_id'] ?>">
-		<img src="<?= $image['thumb'] ?>" alt="<?= $image['name'] ?>">
-	</a>
-	<?php endforeach; ?>
-<?php endif; ?>
+
 
 
 
