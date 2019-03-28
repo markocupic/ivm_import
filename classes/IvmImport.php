@@ -456,7 +456,6 @@ class IvmImport
     {
         $number = (string)$number;
         $number = preg_replace("/\./", "", $number);
-        echo $number;
         return $number;
     }
 
