@@ -341,6 +341,7 @@ class IvmImport
                     "ausstattung"     => join(', ', $environment)
                 );
                 $stm = \Database::getInstance()->prepare("INSERT INTO is_details %s")->set($set)->execute();
+                
                 if ($stm->affectedRows)
                 {
                     $wid = $stm->insertId;
@@ -353,7 +354,7 @@ class IvmImport
                         //"warm"        => $this->formatNumber($value['rent_all']),
                         "warm"        => $this->formatNumber2($value['rent_all']),
                         //"kalt"        => $this->formatNumber($value['rent']),
-                        "kalt"        => $this->formatNumber2($value['flat_rent']),
+                        "kalt"        => $this->formatNumber2($value['rent']),
                         "etage"       => preg_replace("/\.Etage/", "", $value['floor']),
                         "kaution"     => $this->formatNumber2($value['flat_deposit']),
                         "dusche"      => $environment[7] ? "true" : "",
