@@ -175,7 +175,7 @@ class IvmImport
                 $top_wohnungen[$value['flat_id']] = true;
             }
 
-        // Import Wohnungen
+        // Import flats
         $arrCurlOpt = array('tafel' => 0);
         if ($this->page != '')
         {
@@ -220,7 +220,7 @@ class IvmImport
                 $gallery_img = urldecode($objDetails->gallery_img);
                 echo "Importiere Galerie: " . $gallery_img . "...\n";
 
-                //$value['environmet'] thats a typo, but it is made by IVM-Professional ;-);-)
+                //$value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
                 $environment = self::deserialize(urldecode($value['environmet']), true);
 
                 if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['image']))
@@ -235,6 +235,7 @@ class IvmImport
                 }
                 $pics[] = $value['image'];
 
+                // Get flat plot
                 if ($value['flat_plot'])
                 {
                     if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['flat_plot']))
@@ -250,6 +251,7 @@ class IvmImport
                     $pics[] = $value['flat_plot'];
                 }
 
+                // Get flat plot 2
                 if ($value['flat_plot2'])
                 {
                     if ($this->blnForce || !file_exists($this->imagePath . '/' . $value['flat_plot2']))
@@ -273,6 +275,7 @@ class IvmImport
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                 }
 
+                // Ansprechpartner
                 $ansprechpartner = null;
                 if ($value['arranger'] && $value['arranger_email'])
                 {
@@ -341,7 +344,7 @@ class IvmImport
                     "ausstattung"     => join(', ', $environment)
                 );
                 $stm = \Database::getInstance()->prepare("INSERT INTO is_details %s")->set($set)->execute();
-                
+
                 if ($stm->affectedRows)
                 {
                     $wid = $stm->insertId;
