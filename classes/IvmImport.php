@@ -154,7 +154,7 @@ class IvmImport
         echo count($arr_wohngebiete) . " Wohngebiete geladen.\n\n";
 
         // Get Top-Wohnungen
-        echo "Importiere Top-Wohnungen...\n";
+       // test  echo "Importiere Top-Wohnungen...\n";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl . "/modules/json/json_search.php");
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -196,11 +196,11 @@ class IvmImport
 
         if (is_array($data['flats']))
         {
-            echo count($data['flats']) . " Wohnungsangebote werden importiert\n";
+       // test      echo count($data['flats']) . " Wohnungsangebote werden importiert\n";
 
             foreach ($data['flats'] as $key => $value)
             {
-                echo "\nImportiere Angebot {$value['flat_id']}\n";
+         // test        echo "\nImportiere Angebot {$value['flat_id']}\n";
                 $pics = array();
 
                 // Get Details
@@ -218,7 +218,7 @@ class IvmImport
                 // Get gallery images
                 $objDetails = json_decode($response);
                 $gallery_img = urldecode($objDetails->gallery_img);
-                echo "Importiere Galerie: " . $gallery_img . "...\n";
+         // test        echo "Importiere Galerie: " . $gallery_img . "...\n";
 
                 //$value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
                 $environment = self::deserialize(urldecode($value['environmet']), true);
@@ -227,7 +227,7 @@ class IvmImport
                 {
                     if (strlen($value['image']))
                     {
-                        echo "Lade Bild " . $value['image'] . "\n";
+            // test             echo "Lade Bild " . $value['image'] . "\n";
                         $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/flats/' . urlencode($value['image']) . '&w=1024&h=1024';
                         $curloptFile = $this->imagePath . '/' . $value['image'];
                         $this->curlFileDownload($curloptFile, $curloptUrl, 600);
@@ -242,7 +242,7 @@ class IvmImport
                     {
                         if (strlen($value['flat_plot']))
                         {
-                            echo "Lade Grundriss " . $value['flat_plot'] . "\n";
+               // test              echo "Lade Grundriss " . $value['flat_plot'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot']) . '&w=1024';
                             $curloptFile = $this->imagePath . '/' . $value['flat_plot'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -258,7 +258,7 @@ class IvmImport
                     {
                         if (strlen($value['flat_plot2']))
                         {
-                            echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
+              // test               echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot2']) . '&w=1024';
                             $curloptFile = $this->imagePath . '/' . $value['flat_plot2'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -269,7 +269,7 @@ class IvmImport
 
                 if ($this->blnForce || !file_exists($this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf'))
                 {
-                    echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
+          // test           echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
                     $curloptUrl = $this->jsonIvmUrl . '/make_pdf/make_pdf.php?flat_id=' . $value['flat_id'];
                     $curloptFile = $this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf';
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
