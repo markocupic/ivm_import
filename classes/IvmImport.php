@@ -154,7 +154,7 @@ class IvmImport
         echo count($arr_wohngebiete) . " Wohngebiete geladen.\n\n";
 
         // Get Top-Wohnungen
-       // test  echo "Importiere Top-Wohnungen...\n";
+        // test  echo "Importiere Top-Wohnungen...\n";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl . "/modules/json/json_search.php");
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -170,10 +170,12 @@ class IvmImport
         $data = json_decode($response, true);
         echo count($data) . " Top-Wohnungen importiert.\n\n";
         if (!empty($data['flats']) && is_array($data['flats']))
+        {
             foreach ($data['flats'] as $key => $value)
             {
                 $top_wohnungen[$value['flat_id']] = true;
             }
+        }
 
         // Import flats
         $arrCurlOpt = array('tafel' => 0);
@@ -196,11 +198,11 @@ class IvmImport
 
         if (is_array($data['flats']))
         {
-       // test      echo count($data['flats']) . " Wohnungsangebote werden importiert\n";
+            // test      echo count($data['flats']) . " Wohnungsangebote werden importiert\n";
 
             foreach ($data['flats'] as $key => $value)
             {
-         // test        echo "\nImportiere Angebot {$value['flat_id']}\n";
+                // test        echo "\nImportiere Angebot {$value['flat_id']}\n";
                 $pics = array();
 
                 // Get Details
@@ -218,7 +220,7 @@ class IvmImport
                 // Get gallery images
                 $objDetails = json_decode($response);
                 $gallery_img = urldecode($objDetails->gallery_img);
-         // test        echo "Importiere Galerie: " . $gallery_img . "...\n";
+                // test        echo "Importiere Galerie: " . $gallery_img . "...\n";
 
                 //$value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
                 $environment = self::deserialize(urldecode($value['environmet']), true);
@@ -227,7 +229,7 @@ class IvmImport
                 {
                     if (strlen($value['image']))
                     {
-            // test             echo "Lade Bild " . $value['image'] . "\n";
+                        // test             echo "Lade Bild " . $value['image'] . "\n";
                         $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/flats/' . urlencode($value['image']) . '&w=1024&h=1024';
                         $curloptFile = $this->imagePath . '/' . $value['image'];
                         $this->curlFileDownload($curloptFile, $curloptUrl, 600);
@@ -242,7 +244,7 @@ class IvmImport
                     {
                         if (strlen($value['flat_plot']))
                         {
-               // test              echo "Lade Grundriss " . $value['flat_plot'] . "\n";
+                            // test              echo "Lade Grundriss " . $value['flat_plot'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot']) . '&w=1024';
                             $curloptFile = $this->imagePath . '/' . $value['flat_plot'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -258,7 +260,7 @@ class IvmImport
                     {
                         if (strlen($value['flat_plot2']))
                         {
-              // test               echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
+                            // test               echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
                             $curloptUrl = $this->jsonIvmUrl . '/_lib/phpthumb/phpThumb.php?src=/_img/plots/' . urlencode($value['flat_plot2']) . '&w=1024';
                             $curloptFile = $this->imagePath . '/' . $value['flat_plot2'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -269,7 +271,7 @@ class IvmImport
 
                 if ($this->blnForce || !file_exists($this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf'))
                 {
-          // test           echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
+                    // test           echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
                     $curloptUrl = $this->jsonIvmUrl . '/make_pdf/make_pdf.php?flat_id=' . $value['flat_id'];
                     $curloptFile = $this->imagePath . '/' . 'expose_' . $value['flat_id'] . '.pdf';
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -279,18 +281,50 @@ class IvmImport
                 $ansprechpartner = null;
                 if ($value['arranger'] && $value['arranger_email'])
                 {
-                    $stm = \Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%" . $value['arranger'] . "%' OR email LIKE '%" . $value['arranger_email'] . "%'")->limit(1)->execute();
+                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE name LIKE '%" . $value['arranger'] . "%' OR email LIKE '%" . $value['arranger_email'] . "%'")->limit(1)->execute();
                     if ($stm->numRows)
                     {
                         $ansprechpartner = $stm->row();
                     }
+                    else
+                    {
+                        if ($value['arranger_name'] !== '')
+                        {
+                            // Insert new arranger
+                            $arrName = explode(' ', $value['arranger_name']);
+                            //if (count($arrName) === 3)
+                            if (count($arrName) === 300)
+                            {
+                                $set = array(
+                                    'anrede'  => $arrName[0],
+                                    'vorname' => $arrName[1],
+                                    'name'    => $arrName[2],
+                                    'email'   => $value['arranger_email'],
+                                    'tel'     => $value['arranger_phone'],
+                                    //'mobile'  => $value['arranger_phone'], // There is no mobile number?
+                                    'fax'     => $value['arranger_fax'],
+                                );
+                                $objInsertStmt = \Database::getInstance()->prepare("INSERT INTO is_ansprechpartner %s")->set($set)->execute();
+                                if ($objInsertStmt->affectedRows)
+                                {
+                                    $insertID = $objInsertStmt->insertId;
+                                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE id=?")->limit(1)->execute($insertID);
+                                    if ($stm->numRows)
+                                    {
+                                        $ansprechpartner = $stm->row();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    $stm = \Database::getInstance()->prepare("SELECT id FROM is_ansprechpartner WHERE name LIKE '%Wohnungsgenossenschaft%'")->limit(1)->execute();
+                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE name LIKE '%Wohnungsgenossenschaft%'")->limit(1)->execute();
                     if ($stm->numRows)
                     {
                         $ansprechpartner = $stm->row();
+                        die(print_r($ansprechpartner, true));
                     }
                 }
 
