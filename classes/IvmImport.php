@@ -118,7 +118,6 @@ class IvmImport
             \Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
         }
 
-
         // Add more fields to is_details, is_wohngebiete, is_ansprechpartner, is_wohnungen, etc.
         $this->extendTables();
 
@@ -344,6 +343,7 @@ class IvmImport
 
                 if ($stm->affectedRows)
                 {
+                    echo sprintf('Import von "%s, %s %s, %s %s"', $set['title'], $set['strasse'], $set['hnr'], $set['plz'], $set['ort']) . "<br>";
                     $wid = $stm->insertId;
                     $set = array(
                         "wid"         => $wid,
@@ -402,7 +402,7 @@ class IvmImport
             $objInsertStmt = \Database::getInstance()->prepare("INSERT INTO is_ansprechpartner %s")->set($set)->execute();
             if ($objInsertStmt->affectedRows)
             {
-                echo "Insert new record into is_ansprechpartner ID" . $objInsertStmt->insertId . "<br>";
+                echo "INSERT new record INTO is_ansprechpartner ID " . $objInsertStmt->insertId . "<br>";
             }
         }
 
@@ -430,7 +430,7 @@ class IvmImport
             $objInsertStmt = \Database::getInstance()->prepare("UPDATE is_ansprechpartner %s WHERE id=?")->set($set)->execute($stm->id);
             if ($objInsertStmt->affectedRows)
             {
-                echo "Updated is_ansprechpartner WHERE id=" . $stm->id . "<br>";
+                echo "UPDATE is_ansprechpartner WHERE id=" . $stm->id . "<br>";
             }
         }
     }
