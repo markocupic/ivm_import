@@ -105,25 +105,22 @@ class IvmImport
         // Truncate tables
         if ($this->page == 1 || $this->page == '')
         {
-            echo "Tabelle is_details wird geleert...\n";
-            echo "Tabelle is_wohnungen wird geleert...\n";
+            echo "Tabelle is_details wird geleert...\n\n";
             \Database::getInstance()->query('TRUNCATE TABLE is_details');
+
+            echo "Tabelle is_wohnungen wird geleert...\n\n";
             \Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
-        }
-        echo "Tabelle is_wohngebiete wird geleert...\n\n";
-        \Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
-        // \Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
 
-        // Add columns is_wohnungen.flat_id & is_wohnungen.gallery_img
-        if (!\Database::getInstance()->fieldExists('flat_id', 'is_wohnungen'))
-        {
-            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `flat_id` INT NOT NULL');
+            echo "Tabelle is_wohngebiete wird geleert...\n\n";
+            \Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
+
+            echo "Tabelle is_ansprechpartner wird geleert...\n\n";
+            \Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
         }
 
-        if (!\Database::getInstance()->fieldExists('gallery_img', 'is_wohnungen'))
-        {
-            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `gallery_img` BLOB NOT NULL');
-        }
+
+        // Add more fields to is_details, is_wohngebiete, is_ansprechpartner, is_wohnungen, etc.
+        $this->extendTables();
 
         // Let's start the import process...
         echo "Starte den Importvorgang...\n\n";
@@ -277,58 +274,24 @@ class IvmImport
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
                 }
 
-                // Ansprechpartner
-                $ansprechpartner = null;
-                if ($value['arranger'] && $value['arranger_email'])
+                // Update table is_ansprechpartner
+                if ($value['arrangernr'])
                 {
-                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE name LIKE '%" . $value['arranger'] . "%' OR email LIKE '%" . $value['arranger_email'] . "%'")->limit(1)->execute();
-                    if ($stm->numRows)
-                    {
-                        $ansprechpartner = $stm->row();
-                    }
-                    else
-                    {
-                        if ($value['arranger_name'] !== '')
-                        {
-                            // Insert new arranger
-                            $arrName = explode(' ', $value['arranger_name']);
-                            //if (count($arrName) === 3)
-                            if (count($arrName) === 300)
-                            {
-                                $set = array(
-                                    'anrede'  => $arrName[0],
-                                    'vorname' => $arrName[1],
-                                    'name'    => $arrName[2],
-                                    'email'   => $value['arranger_email'],
-                                    'tel'     => $value['arranger_phone'],
-                                    //'mobile'  => $value['arranger_phone'], // There is no mobile number?
-                                    'fax'     => $value['arranger_fax'],
-                                );
-                                $objInsertStmt = \Database::getInstance()->prepare("INSERT INTO is_ansprechpartner %s")->set($set)->execute();
-                                if ($objInsertStmt->affectedRows)
-                                {
-                                    $insertID = $objInsertStmt->insertId;
-                                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE id=?")->limit(1)->execute($insertID);
-                                    if ($stm->numRows)
-                                    {
-                                        $ansprechpartner = $stm->row();
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    $this->updateTableAnsprechpartner($value['arrangernr'], $value);
                 }
-                else
+
+                // Ansprechpartner
+                $arrAnsprechpartner = null;
+                if ($value['arrangernr'])
                 {
-                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE name LIKE '%Wohnungsgenossenschaft%'")->limit(1)->execute();
+                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($value['arrangernr']);
                     if ($stm->numRows)
                     {
-                        $ansprechpartner = $stm->row();
-                        die(print_r($ansprechpartner, true));
+                        $arrAnsprechpartner = $stm->row();
                     }
                 }
 
-                if (!isset($ansprechpartner['id']))
+                if ($arrAnsprechpartner === null || !is_array($arrAnsprechpartner) || !isset($arrAnsprechpartner['id']))
                 {
                     echo "Kein Ansprechpartner für " . $value['arranger'] . ' ' . $value['arranger_email'] . "<br>";
                 }
@@ -385,7 +348,7 @@ class IvmImport
                     $set = array(
                         "wid"         => $wid,
                         "gid"         => $arr_wohngebiete[$value['district_name']],
-                        "aid"         => $ansprechpartner['id'] ? $ansprechpartner['id'] : 1,
+                        "aid"         => $arrAnsprechpartner['id'] ? $arrAnsprechpartner['id'] : 1,
                         "zimmer"      => $value['rooms'],
                         "flaeche"     => $this->formatNumber2($value['space']),
                         //"warm"        => $this->formatNumber($value['rent_all']),
@@ -420,6 +383,80 @@ class IvmImport
         \System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
         echo '</pre>';
         exit();
+    }
+
+    /**
+     * @param $strTable
+     * @param $arrangerNr
+     * @param $arrValue
+     */
+    protected function updateTableAnsprechpartner($arrangerNr, array $arrValue)
+    {
+        // Insert new arranger
+        $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($arrangerNr);
+        if (!$stm->numRows)
+        {
+            $set = array(
+                'arrangernr' => $arrangerNr
+            );
+            $objInsertStmt = \Database::getInstance()->prepare("INSERT INTO is_ansprechpartner %s")->set($set)->execute();
+            if ($objInsertStmt->affectedRows)
+            {
+                echo "Insert new record into is_ansprechpartner ID" . $objInsertStmt->insertId . "<br>";
+            }
+        }
+
+        $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($arrangerNr);
+        if ($stm->numRows)
+        {
+            // Update arranger
+            $arrName = explode(' ', $arrValue['arranger_name']);
+            $set = array(
+                'anrede'  => $arrName[0],
+                'vorname' => $arrName[1],
+                'name'    => $arrName[2],
+                'email'   => $arrValue['arranger_email'],
+                'tel'     => $arrValue['arranger_phone'],
+                //'mobile'  => $value['arranger_phone'], // There is no mobile number submitted?
+                'fax'     => $arrValue['arranger_fax']
+            );
+            if (!count($arrName) === 3)
+            {
+                $set['anrede'] = '';
+                $set['vorname'] = '';
+                $set['name'] = $arrValue['arranger_name'];
+            }
+
+            $objInsertStmt = \Database::getInstance()->prepare("UPDATE is_ansprechpartner %s WHERE id=?")->set($set)->execute($stm->id);
+            if ($objInsertStmt->affectedRows)
+            {
+                echo "Updated is_ansprechpartner WHERE id=" . $stm->id . "<br>";
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    protected function extendTables()
+    {
+        // Add columns is_wohnungen.flat_id & is_wohnungen.gallery_img
+        if (!\Database::getInstance()->fieldExists('flat_id', 'is_wohnungen'))
+        {
+            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `flat_id` INT NOT NULL');
+        }
+
+        if (!\Database::getInstance()->fieldExists('gallery_img', 'is_wohnungen'))
+        {
+            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `gallery_img` BLOB NOT NULL');
+        }
+
+        // Add is_ansprechpartner.arrangernr (extended on 27.11.2019, Marko Cupic)
+        if (!\Database::getInstance()->fieldExists('arrangernr', 'is_ansprechpartner'))
+        {
+            echo 'Added field is_ansprechpartner.arrangernr' . '<br>';
+            \Database::getInstance()->query('ALTER TABLE `is_ansprechpartner` ADD `arrangernr` INT NOT NULL');
+        }
     }
 
     /**

@@ -71,12 +71,40 @@ class IvmTemplateHelper
     }
 
     /**
-     * @param $wid
+     * @param $flatId
+     * @return array
+     */
+    public static function getGalleryArrayByFlatId($flatId)
+    {
+        $arrGal = array();
+        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')->execute($flatId);
+        if ($objWohnung->numRows)
+        {
+            $arrGallery = self::deserialize($objWohnung->gallery_img);
+            if (!empty($arrGallery) && is_array($arrGallery))
+            {
+                foreach ($arrGallery as $image)
+                {
+                    $arrGal[] = array(
+                        'flat_id' => $objWohnung->flat_id,
+                        'name'    => $image['name'],
+                        'caption' => $image['info_text'],
+                        'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
+                        'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
+                    );
+                }
+            }
+        }
+        return $arrGal;
+    }
+
+    /**
+     * @param $flatId
      * @return bool
      */
-    public static function hasGallery($wid)
+    public static function hasGallery($flatId)
     {
-        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
+        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')->execute($flatId);
         if ($objWohnung->numRows)
         {
             $arrGallery = self::deserialize($objWohnung->gallery_img, true);
