@@ -1,7 +1,7 @@
 <a href="<?=$this->jumpTo;?>" class="btn btn-primary pull-right" title="zurück zur Übersicht" style="margin-top:20px; margin-bottom:20px; margin-right:-2%;">zurück zur Übersicht</a>
 <script>
 	console.log($('body').width());
- 	
+
 </script>
 
 <style>
@@ -11,9 +11,9 @@
 	.mLeft10 { margin-left:5px; }
 	.bold { font-weight: bold; }
 	.pointer { cursor:pointer; }
-	
+
 	.allBox {  max-width:700px; margin-left:auto; margin-right:auto; }
-	
+
 	.blackBG {
 		position:fixed;
 		z-index:1001;
@@ -27,7 +27,7 @@
 		padding:0;
 		display:none;
 	}
-	
+
 	.closeBtn {
 		position:absolute;
 		right:0;
@@ -38,7 +38,7 @@
 		background-color:white;
 		-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)"; filter:alpha(opacity=80); -moz-opacity:0.8; -khtml-opacity:0.8; opacity:0.8;
 	}
-	
+
 	.imgBox {
 		position:fixed;
 		z-index:1002;
@@ -48,13 +48,13 @@
 		padding:0;
 		display:none;
 	}
-	
+
 	.detailBox {
 		width: 440px;
 		padding: 20px;
 		background-color: #eee;
 	}
-	
+
 	.backBtn {
 		width: 220px;
 		height: 40px;
@@ -62,7 +62,7 @@
 		margin-left: 20px;
 		background-color: #eee;
 	}
-	
+
 	.backBtn a {
 		display:block;
 		width:100%;
@@ -72,13 +72,13 @@
 		font-size:18px;
 		color:#999;
 	}
-	
+
 	.backBtn a:hover {
 		font-size:18px;
-		color:#eee;	
+		color:#eee;
 		background-color:#999;
 	}
-	
+
 	.picBox {
 		width: 220px;
 		padding: 10px;
@@ -86,7 +86,7 @@
 		margin-left: 20px;
 		background-color: #eee;
 	}
-	
+
 	.apBox {
 		width: 220px;
 		padding: 10px;
@@ -94,58 +94,58 @@
 		margin-left: 20px;
 		background-color: #eee;
 	}
-	
+
 	.map {
 		width:100%;
 		height:300px;
 	}
-	
+
 	.check {
 		color:#137524;
 	}
-	
+
 	.h1 { font-size: 16px !important; font-weight: bold; margin-left:16px; text-shadow: #ffffff 1px 1px 2px }
 	.h2 { font-size: 14px !important; font-weight: bold; }
 	.h3 { font-size: 13px !important; font-weight: 300; }
 	legend { font-size: 18px; }
 	table { font-size: 13px; }
 	p { font-size: 16px; }
-	
+
 	a:hover { color: #777; font-weight:bold; text-decoration:underline; }
-	
+
 	.brPic { display:none; }
-	
+
 	.item        { text-align:center; background-color: #eee; padding-top:10px;padding-bottom:10px; margin-bottom:20px; margin-left:2%; margin-right:2%; width:20%; }
-	
+
     .item > h3 { font-size:24px; font-weight:bold; margin-top:-6px; }
     .item > h4 { font-size:14px; }
-	
+
 	.shorten-long-text{
 	   white-space: nowrap;
 	   overflow: hidden;
 	   width: 100%;
 	   text-overflow: ellipsis;
 	}
-	
+
 	.box
 	{
-		background-color:#fff; 
-		border: 1px solid #dddddd; 
+		background-color:#fff;
+		border: 1px solid #dddddd;
 		padding-left: 12px;
     	padding-right: 12px;
 	}
-	
+
 	.clicksBox {
-		background-color:#fff; 
-		border: 1px solid #dddddd; 
-		width:24%; 
+		background-color:#fff;
+		border: 1px solid #dddddd;
+		width:24%;
 		float:left;
-		margin-right:1%; 
+		margin-right:1%;
 		margin-top:10px;
 		padding-left: 12px;
     	padding-right: 12px;
 	}
-	
+
 	.clicksBoxPic {
 		padding-left:0;
 		margin-bottom:2px;
@@ -181,10 +181,10 @@
 	.item { width:44%; float: left; margin-left:3%; }
     #headline { margin: 0; }
 }
-	
+
 </style>
 
-<?php 
+<?php
 	if(strpos($this->phpself,'?') != FALSE) {
 		$link = $this->phpself.'&wid=';
 		$sortKind = '&';
@@ -206,12 +206,12 @@
 	<div class="rs-column -large-col-4-1 -large-first -large-first-row -medium-col-2-1 -medium-first -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
 <div class="ce_text block box">
       <h4>Warmmiete</h4>
-		<h3><?=$this->wohnung['warm']?></h3> 
+		<h3><?=$this->wohnung['warm']?></h3>
 </div>
 </div><div class="rs-column -large-col-4-1 -large-first-row -medium-col-2-1 -medium-last -medium-first-row -small-col-1-1 -small-first -small-last">
 <div class="ce_text blockk box">
       <h4>Kaltmiete</h4>
-		<h3><?=$this->wohnung['kalt']?></h3> 
+		<h3><?=$this->wohnung['kalt']?></h3>
  </div>
 </div><div class="rs-column -large-col-4-1 -large-first-row -medium-col-2-1 -medium-first -small-col-1-1 -small-first -small-last">
 <div class="ce_text block box">
@@ -238,7 +238,7 @@
 	<img src="./files/Wohnungsangebote/<?=$this->pics[0]['name']?>" class="lazyloaded" alt="<?=$this->wohnung['title']?>" title="<?=$this->wohnung['title']?>">
 </a>
   </figure>
-  
+
     <figure class="image_container">
   <a class="cboxElement" href="./files/Wohnungsangebote/<?=$this->pics[1]['name']?>">
   <?php for ( $i = 1 ; $i < count($this->pics) ; $i++ ) : ?>
@@ -254,8 +254,8 @@
 </div><div class="rs-column -large-col-2-1 -large-last -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
 <div class="ce_text block">
 
-  
-  
+
+
      	<p>
 			<h3 data-icon="✏">
 				<span class="icon-links-label">Ausstattung</span>
@@ -271,20 +271,20 @@
 		</p>
         <p><?=$this->wohnung['beschr_lage']?></p></fieldset>
         <?php endif; ?>
-  
-  
+
+
 
 </div>
 </div></div>
 
 
 
-<?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('wid'))): ?>
+<?php if(\Markocupic\Ivm\IvmTemplateHelper::hasGallery(\Contao\Input::get('flat_id'))): ?>
 <!-- Galerie -->
 {{br}}
 <div class="flatGallery">
 	<div class="row itemContainer">
-		<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByWid(\Contao\Input::get('wid')) as $image): ?>
+		<?php foreach(\Markocupic\Ivm\IvmTemplateHelper::getGalleryArrayByFlatId(\Contao\Input::get('flat_id')) as $image): ?>
 		<div class="clicksBox" style="padding-top: 12px; padding-bottom:12px;">
 			<a href="<?= $image['path'] ?>" title="<?= $image['caption'] ?>" data-lightbox="gal_<?= $image['flat_id'] ?>">
 				<img style="width:100%;max-width: 100%; height:auto;" src="<?= $image['path'] ?>" alt="<?= $image['name'] ?>">
@@ -304,7 +304,7 @@
 
 	<div class="rs-column -large-col-3-1 -large-first -large-first-row -medium-col-1-1 -medium-first -medium-last -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
 <div class="ce_text klasse block">
-  
+
 Objekt-Nr.: <?=$this->wohnung['objektnr']?></p>
     			<strong>Kosten</strong><br>
     			    Kaltmiete: <?=$this->wohnung['kalt']?><br>
@@ -353,15 +353,15 @@ Objekt-Nr.: <?=$this->wohnung['objektnr']?></p>
     				<?php endif; ?>
     				<?=$this->wohnung['plz']?> <?=$this->wohnung['ort']?>
 
-  
-  
+
+
 
 </div>
 </div><div class="rs-column -large-col-3-1 -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
 <div class="ce_text block">
 
-  
-  
+
+
 Ausstattung</p>
     			<?php if($this->wohnung['wg'] != null ) : ?>
 	                <p><span class="check">✔</span>&nbsp;<?=$this->wohnung['wg']?></p>
@@ -436,15 +436,15 @@ Ausstattung</p>
     				<?=$this->wohnung['haustiere']?>
     			</p>
     			<?php endif; ?>
-  
-  
+
+
 
 </div>
 </div><div class="rs-column -large-col-3-1 -large-last -large-first-row -medium-col-1-1 -medium-first -medium-last -small-col-1-1 -small-first -small-last">
 <div class="ce_text block">
 
-  
-  
+
+
  <?php if($this->wohnung['fliesen'] != null || $this->wohnung['kunststoff'] != null || $this->wohnung['parkett'] != null || $this->wohnung['teppich'] != null || $this->wohnung['laminat'] != null || $this->wohnung['dielen'] != null || $this->wohnung['stein'] != null || $this->wohnung['estrich'] != null || $this->wohnung['doppelboden'] != null ) : ?>
     			<p>Böden</p>
     			<p>
@@ -516,11 +516,11 @@ Ausstattung</p>
     				<?php endif; ?>
     			<p>
 <a href="./files/Wohnungsangebote/<?=$this->wohnung['energieausweis']?>" target="_blank" class="button -single ce_rsce_tao_button -quaternary -small" title="Energieausweis öffnen">Energieausweis</a><br><br>
-    			
+
   <?php if(isset($this->wohnung['expose']) && $this->wohnung['expose'] != null) : ?>
 <a href="./files/Wohnungsangebote/<?=$this->wohnung['expose']?>" target="_blank" class="button -single ce_rsce_tao_button -quaternary -small" title="Exposé öffnen" style="margin-top:20px; margin-bottom:20px; margin-left:-2%;">Exposé</a>
 <?php endif; ?>
-</p>  
+</p>
 
 </div>
 </div></div>
@@ -534,23 +534,23 @@ Ausstattung</p>
 	<div class="rs-column -large-col-3-1 -large-first -large-first-row -medium-col-2-1 -medium-first -medium-first-row -small-col-1-1 -small-first -small-last -small-first-row">
 <div class="ce_text klasse block">
 
-  
-  
+
+
 		<?php if($this->wohnung['ap']['pic'] != null) : ?>
 
 				<img src="<?=$this->wohnung['ap']['pic']?>" class="img-responsive" alt="Ansprechpartner <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?>">
 
 
-				
-  
-  
+
+
+
 
 </div>
 </div><div class="rs-column -large-col-3-2 -large-last -large-first-row -medium-col-2-1 -medium-last -medium-first-row -small-col-1-1 -small-first -small-last">
 <div class="ce_text block">
 
-  
-  
+
+
 <h2 style="font-size:24px;margin-top:10px;">Ansprechpartner</h2>
 				<span class="bold"><?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?></span><br>
 				<a href="tel:<?=$this->wohnung['ap']['tel']?>" title="<?=$this->wohnung['ap']['tel']?>"><span class="icon-phone" aria-hidden="true"></span> <?=$this->wohnung['ap']['tel']?></a><br/>
@@ -570,8 +570,8 @@ Ausstattung</p>
 			<a href="fax:<?=$this->wohnung['ap']['fax']?>" title="<?=$this->wohnung['ap']['fax']?>"><span class="icon-fax" aria-hidden="true"></span> <?=$this->wohnung['ap']['fax']?></a><br/>
 			<a href="mailto:<?=$this->wohnung['ap']['email']?>?subject=<?=$this->wohnung['title']?> ( ObjektNr: <?=$this->wohnung['objektnr']?> )" title="<?=$this->wohnung['ap']['anrede']?> <?=$this->wohnung['ap']['vorname']?> <?=$this->wohnung['ap']['name']?> eine E-Mail schreiben"><span class="icon-envelope" aria-hidden="true"></span> E-Mail schreiben</a>
 		<?php endif; ?>
-  
-  
+
+
 
 </div>
 </div></div>
@@ -589,7 +589,7 @@ Ausstattung</p>
 
 
 
-<?php if ( $this->wohnung['str'] ) : ?> 
+<?php if ( $this->wohnung['str'] ) : ?>
 
 </div
 <?php endif; ?>
@@ -605,7 +605,7 @@ Ausstattung</p>
 
 <div class="row itemContainer" style="margin-top:10px;">
 <?php foreach( $this->clickData as $wohnung ) : ?>
-	<div class="clicksBox clickable js-base64" data-extend="<?=$link.$wohnung['wid'];?>">
+	<div class="clicksBox clickable js-base64" data-extend="<?=$link.$wohnung['flat_id'];?>">
 		<h2 class="shorten-long-text" style="font-size:16px; font-weight:bold;"><?=$wohnung['title']?></h2>
 		<h1 class="shorten-long-text" style="font-size:14px;margin-top:-6px;"><?=$wohnung['strasse']?> <?=$wohnung['hnr']?><br><?=$wohnung['plz']?> <?=$wohnung['ort']?></h1>
 		<div class="clicksBoxPic">
@@ -640,47 +640,47 @@ Ausstattung</p>
 		{
 			buehneX = window.innerWidth;
 			buehneY = window.innerHeight;
-		}		
+		}
 	}
-	
+
 	function showPic(pic, width, height)
 	{
 		getSize();
 		//alert(buehneX + '-' + buehneY);
 
 		$('#imgBoxPic').attr('src', pic);
-		
+
 		var pic_height = height;
 		var pic_width = width;
 		var faktor = pic_width/pic_height;
 		var faktor2 = pic_height/pic_width;
-		
+
 		var picMargin = 120;
 		if( buehneX < 700 ) picMargin = 20;
-		
+
 		while(pic_height > (buehneY - picMargin)) pic_height -= 10;
 		pic_width = pic_height*faktor;
 		while(pic_width > (buehneX - picMargin*2)) pic_width -= 10;
 		pic_height = pic_width*faktor2;
-		
+
 		$('#imgBoxPic').attr( { height: pic_height, width: pic_width});
 
 		$('#blackBG').css({	left: 0 }).show();
-		$('#imgBox').css({	
+		$('#imgBox').css({
 
-			left: (buehneX - pic_width - 8) / 2 + 'px', 
-			top: (buehneY - pic_height - 8) / 2 + 'px' 
+			left: (buehneX - pic_width - 8) / 2 + 'px',
+			top: (buehneY - pic_height - 8) / 2 + 'px'
 		}).show();
-		
+
 		//alert('=' + ((buehneY - pic_height - 8) / 2));
 	}
-	
+
 	function closePic()
 	{
 		$('#blackBG').css({	left: buehneX + 'px' }).hide();
 		$('#imgBox').css({	left: buehneX + 'px' }).hide();
 	}
-	
+
 </script>
 
 <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyAIyVVHhhSaS7t6cOGZ9C6sfdqfuX9dyH4"></script>
@@ -694,12 +694,12 @@ Ausstattung</p>
     		center: myLatlng,
     		mapTypeId: google.maps.MapTypeId.ROADMAP
   		};
-  		
+
   		map = new google.maps.Map(document.getElementById('map'),
       			mapOptions);
-				
+
 		geocoder = new google.maps.Geocoder();
-				
+
 		var address = "<?=$this->wohnung['str']?> <?=$this->wohnung['hnr']?>,<?=$this->wohnung['plz']?> <?=$this->wohnung['ort']?>";
 		geocoder.geocode( { 'address': address }, function(result, status) {
 			if (status == google.maps.GeocoderStatus.OK) {
@@ -712,8 +712,8 @@ Ausstattung</p>
 			}
 		});
 	}
-	
-	<?php if ( $this->wohnung['str'] ) : ?> 
+
+	<?php if ( $this->wohnung['str'] ) : ?>
 	google.maps.event.addDomListener(window, 'load', initialize);
 	<?php endif; ?>
 </script>
