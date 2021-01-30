@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of Marko Cupic IVM Package.
  *
@@ -10,6 +12,12 @@
  */
 
 namespace Markocupic\Ivm;
+
+use Contao\Database;
+use Contao\Date;
+use Contao\Folder;
+use Contao\StringUtil;
+use Contao\System;
 
 /**
  * Class IvmImport
@@ -57,99 +65,94 @@ class IvmImport
      */
     public function importIvmDatabase($page = '', $blnForce = false, $blnPurgeDownloadFolder = false)
     {
-
         $startTime = time();
+        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
 
-        echo '<pre>';
-
-        // Add some additional fields to the database
-        $query = "ALTER TABLE is_details ADD COLUMN flat_video_link varchar(255) NOT NULL default ''";
-        if (!\Database::getInstance()->fieldExists('flat_video_link', 'is_details')) {
-            \Database::getInstance()->query($query);
-            echo 'Add column flat_video_link';
-        }
-
-        $this->page = $page >= 1 ? $page : '';
+        $this->page = $page >= 1 ? (int)$page : '';
         if ($this->page) {
-            echo sprintf("Import Skript mit dem page=%s Parameter aufgerufen...", $this->page)."\n\n";
+            $this->prtScr(sprintf("Import Skript mit dem page=%s Parameter aufgerufen...", $this->page));
+            $this->prtScr("");
         }
 
         $this->blnForce = $blnForce === true ? true : false;
         if ($this->blnForce) {
-            echo "Import Skript mit dem force=true Parameter aufgerufen...\n\n";
+            $this->prtScr("Import Skript mit dem force=true Parameter aufgerufen...");
+            $this->prtScr("");
         }
 
         $this->blnPurgeDownloadFolder = $blnPurgeDownloadFolder === true ? true : false;
         if ($this->blnPurgeDownloadFolder) {
-            echo "Import Skript mit dem blnPurgeDownloadFolder=true Parameter aufgerufen...\n\n";
+            $this->prtScr("Import Skript mit dem blnPurgeDownloadFolder=true Parameter aufgerufen...");
+            $this->prtScr("");
         }
 
+        // Check tables. Add columns, if they does not exist.
+        $this->checkTables();
+
         // Folder settings
-        $this->imagePath = TL_ROOT.'/'.$this->downloadFolder;
+        $this->imagePath = $projectDir.'/'.$this->downloadFolder;
 
         // Create download folder and unprotect it
-        $objDownloadFolder = new \Folder($this->downloadFolder);
-        if (version_compare(VERSION, '3.5', '>')) {
-            if (!file_exists(TL_ROOT.'/'.$this->downloadFolder.'/.public')) {
-                echo "Mache Download-Ordner ".$this->downloadFolder." öffentlich...\n\n";
-                $fp = fopen(TL_ROOT.'/'.$this->downloadFolder.'/.public', 'w');
-                fwrite($fp, sprintf('Erstellt am %s durch %s Linie %s', \Date::parse('Y.m.d'), __METHOD__, __LINE__));
-                fclose($fp);
-            }
+        $objDownloadFolder = new Folder($this->downloadFolder);
+        if (!file_exists($projectDir.'/'.$this->downloadFolder.'/.public')) {
+            $this->prtScr("Erstelle Download-Ordner ".$this->downloadFolder." öffentlich.");
+            $this->prtScr("");
+            $fp = fopen($projectDir.'/'.$this->downloadFolder.'/.public', 'w');
+            fwrite($fp, sprintf('Erstellt am %s durch %s Linie %s', Date::parse('Y.m.d'), __METHOD__, __LINE__));
+            fclose($fp);
         }
 
         // Purge download folder
-        if ($this->blnPurgeDownloadFolder && ($this->page == '' || $this->page == 1)) {
-            echo "Download Verzeichnis leeren ".$this->downloadFolder."...\n\n";
+        if ($this->blnPurgeDownloadFolder && ($this->page === '' || $this->page === 1)) {
+            $this->prtScr("Download Verzeichnis leeren ".$this->downloadFolder."...");
+            $this->prtScr("");
             $objDownloadFolder->purge();
         }
 
         // Truncate tables
-        if ($this->page == 1 || $this->page == '') {
-            echo "Tabelle is_details wird geleert...\n\n";
-            \Database::getInstance()->query('TRUNCATE TABLE is_details');
-
-            echo "Tabelle is_wohnungen wird geleert...\n\n";
-            \Database::getInstance()->query('TRUNCATE TABLE is_wohnungen');
-
-            echo "Tabelle is_wohngebiete wird geleert...\n\n";
-            \Database::getInstance()->query('TRUNCATE TABLE is_wohngebiete');
-
-            echo "Tabelle is_ansprechpartner wird geleert...\n\n";
-            \Database::getInstance()->query('TRUNCATE TABLE is_ansprechpartner');
+        if ($this->page === 1 || empty($this->page)) {
+            $arrTables = array_keys(TableConfig::getTableData());
+            foreach ($arrTables as $strTable) {
+                $this->prtScr("Tabelle ".$strTable." wird geleert...");
+                $this->prtScr("");
+                Database::getInstance()->query('TRUNCATE TABLE '.$strTable);
+            }
         }
 
-        // Add more fields to is_details, is_wohngebiete, is_ansprechpartner, is_wohnungen, etc.
-        $this->extendTables();
-
         // Let's start the import process...
-        echo "Starte den Importvorgang...\n\n";
+        $this->prtScr("Starte den Importvorgang...");
+        $this->prtScr("");
 
         // Get Ausstattungen
         $data_raw = file_get_contents($this->jsonIvmUrl."/modules/json/json_environments.php");
-        $ausstattungen = self::deserialize(json_decode($data_raw), true);
-        echo count($ausstattungen)." Ausstattungen geladen\n\n";
+        $ausstattungen = StringUtil::deserialize(json_decode($data_raw), true);
+        $this->prtScr(count($ausstattungen)." Ausstattungen geladen.");
+        $this->prtScr("");
 
         // Import Wohngebiete
         $data_raw = file_get_contents($this->jsonIvmUrl."/modules/json/json_districts.php");
-        $data = self::deserialize(json_decode($data_raw), true);
+        $data = StringUtil::deserialize(json_decode($data_raw), true);
 
         $arr_wohngebiete = [];
-        echo "Importiere Wohngebiete...\n";
+        $this->prtScr("Importiere Wohngebiete...");
         foreach ($data as $key => $value) {
             $set = [
                 "id"         => $key,
                 "wohngebiet" => (string)$value['name'],
             ];
-            $stm = \Database::getInstance()->prepare("INSERT INTO is_wohngebiete %s")->set($set)->execute();
+            $stm = Database::getInstance()
+                ->prepare("INSERT INTO is_wohngebiete %s")
+                ->set($set)
+                ->execute();
             if ($stm->affectedRows) {
                 $arr_wohngebiete[$value['name']] = $stm->insertId;
             }
         }
-        echo count($arr_wohngebiete)." Wohngebiete geladen.\n\n";
+        $this->prtScr(count($arr_wohngebiete)." Wohngebiete geladen.");
+        $this->prtScr("");
 
         // Get Top-Wohnungen
-        // test  echo "Importiere Top-Wohnungen...\n";
+        // $this->>log("Importiere Top-Wohnungen...");
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl."/modules/json/json_search.php");
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -167,7 +170,8 @@ class IvmImport
 
         $top_wohnungen = [];
         $data = json_decode($response, true);
-        echo count($data)." Top-Wohnungen importiert.\n\n";
+        $this->prtScr(count($data)." Top-Wohnungen importiert.");
+        $this->prtScr("");
         if (!empty($data['flats']) && is_array($data['flats'])) {
             foreach ($data['flats'] as $key => $value) {
                 $top_wohnungen[$value['flat_id']] = true;
@@ -179,7 +183,7 @@ class IvmImport
         if ($this->page != '') {
             $arrCurlOpt['search_page'] = $this->page;
         }
-        if ($this->page == '') {
+        if (empty($this->page)) {
             $arrCurlOpt['limit'] = 'all';
         }
         $ch = curl_init();
@@ -192,10 +196,10 @@ class IvmImport
         $data = json_decode($response, true);
 
         if (is_array($data['flats'])) {
-            // test      echo count($data['flats']) . " Wohnungsangebote werden importiert\n";
+            // $this->prtScr(count($data['flats']) . " Wohnungsangebote werden importiert.");
 
             foreach ($data['flats'] as $key => $value) {
-                // test        echo "\nImportiere Angebot {$value['flat_id']}\n";
+                // $this->>log("Importiere Angebot " . $value['flat_id']");
                 $pics = [];
 
                 // Get Details
@@ -216,26 +220,29 @@ class IvmImport
                 // Get gallery images
                 $objDetails = json_decode($response);
                 $gallery_img = urldecode($objDetails->gallery_img);
-                // test        echo "Importiere Galerie: " . $gallery_img . "...\n";
+                // $this->prtScr("Importiere Galerie: " . $gallery_img . "...");
 
-                //$value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
-                $environment = self::deserialize(urldecode($value['environmet']), true);
+                // $value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
+                $environment = StringUtil::deserialize(urldecode($value['environmet']), true);
+                if (isset($value['image']) && !empty($value['image'])) {
+                    if ($this->blnForce || !file_exists($this->imagePath.'/'.$value['image'])) {
 
-                if ($this->blnForce || !file_exists($this->imagePath.'/'.$value['image'])) {
-                    if (strlen($value['image'])) {
-                        // test             echo "Lade Bild " . $value['image'] . "\n";
-                        $curloptUrl = $this->jsonIvmUrl.'/_lib/phpthumb/phpThumb.php?src=/_img/flats/'.urlencode($value['image']).'&w=1024&h=1024';
-                        $curloptFile = $this->imagePath.'/'.$value['image'];
-                        $this->curlFileDownload($curloptFile, $curloptUrl, 600);
+                        if (strlen((string)$value['image'])) {
+                            $this->prtScr("Lade Bild ".$value['image']);
+                            $curloptUrl = $this->jsonIvmUrl.'/_lib/phpthumb/phpThumb.php?src=/_img/flats/'.urlencode($value['image']).'&w=1024&h=1024';
+                            $curloptFile = $this->imagePath.'/'.$value['image'];
+                            $this->curlFileDownload($curloptFile, $curloptUrl, 600);
+                        }
                     }
+
+                    $pics[] = $value['image'];
                 }
-                $pics[] = $value['image'];
 
                 // Get flat plot
-                if ($value['flat_plot']) {
+                if (isset($value['flat_plot']) && !empty($value['flat_plot'])) {
                     if ($this->blnForce || !file_exists($this->imagePath.'/'.$value['flat_plot'])) {
-                        if (strlen($value['flat_plot'])) {
-                            // test              echo "Lade Grundriss " . $value['flat_plot'] . "\n";
+                        if (strlen((string)$value['flat_plot'])) {
+                            $this->prtScr("Lade Grundriss ".$value['flat_plot']);
                             $curloptUrl = $this->jsonIvmUrl.'/_lib/phpthumb/phpThumb.php?src=/_img/plots/'.urlencode($value['flat_plot']).'&w=1024';
                             $curloptFile = $this->imagePath.'/'.$value['flat_plot'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -245,10 +252,10 @@ class IvmImport
                 }
 
                 // Get flat plot 2
-                if ($value['flat_plot2']) {
+                if (isset($value['flat_plot2']) && !empty($value['flat_plot2'])) {
                     if ($this->blnForce || !file_exists($this->imagePath.'/'.$value['flat_plot2'])) {
-                        if (strlen($value['flat_plot2'])) {
-                            // test               echo "Lade Grundriss 2 " . $value['flat_plot2'] . "\n";
+                        if (strlen((string)$value['flat_plot2'])) {
+                            $this->prtScr("Lade Grundriss 2 ".$value['flat_plot2']);
                             $curloptUrl = $this->jsonIvmUrl.'/_lib/phpthumb/phpThumb.php?src=/_img/plots/'.urlencode($value['flat_plot2']).'&w=1024';
                             $curloptFile = $this->imagePath.'/'.$value['flat_plot2'];
                             $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -258,7 +265,7 @@ class IvmImport
                 }
 
                 if ($this->blnForce || !file_exists($this->imagePath.'/'.'expose_'.$value['flat_id'].'.pdf')) {
-                    // test           echo "Lade Expose expose_" . $value['flat_id'] . ".pdf" . "\n";
+                    $this->prtScr("Lade Expose expose_".$value['flat_id'].".pdf");
                     $curloptUrl = $this->jsonIvmUrl.'/make_pdf/make_pdf.php?flat_id='.$value['flat_id'];
                     $curloptFile = $this->imagePath.'/'.'expose_'.$value['flat_id'].'.pdf';
                     $this->curlFileDownload($curloptFile, $curloptUrl, 300);
@@ -272,14 +279,17 @@ class IvmImport
                 // Ansprechpartner
                 $arrAnsprechpartner = null;
                 if ($value['arrangernr']) {
-                    $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($value['arrangernr']);
+                    $stm = Database::getInstance()
+                        ->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")
+                        ->limit(1)
+                        ->execute($value['arrangernr']);
                     if ($stm->numRows) {
                         $arrAnsprechpartner = $stm->row();
                     }
                 }
 
                 if ($arrAnsprechpartner === null || !is_array($arrAnsprechpartner) || !isset($arrAnsprechpartner['id'])) {
-                    echo "Kein Ansprechpartner für ".$value['arranger'].' '.$value['arranger_email']."<br>";
+                    $this->prtScr("Kein Ansprechpartner für ".$value['arranger'].' '.$value['arranger_email']);
                 }
 
                 // Prepare some fields
@@ -294,7 +304,7 @@ class IvmImport
                     "ort"             => $value['city'],
                     "nk"              => $this->formatNumber2($value['charges']),
                     "hk"              => $this->formatNumber2($value['heating']),
-                    //"hk_in" => $value['heating']==0 ? 'Ja' : 'Nein',
+                    // "hk_in" => $value['heating']==0 ? 'Ja' : 'Nein',
                     "hk_in"           => 'Ja',
                     "beschr"          => $value['objectdescription'],
                     "beschr_lage"     => $value['district_description'],
@@ -335,9 +345,13 @@ class IvmImport
                     $set
                 );
 
-                $stm = \Database::getInstance()->prepare("INSERT INTO is_details %s")->set($set)->execute();
+                $stm = Database::getInstance()
+                    ->prepare("INSERT INTO is_details %s")
+                    ->set($set)
+                    ->execute();
                 if ($stm->affectedRows) {
-                    echo sprintf('Import von "%s, %s %s, %s %s"', $set['title'], $set['strasse'], $set['hnr'], $set['plz'], $set['ort'])."<br>";
+                    $this->prtScr(sprintf('Import von "%s, %s %s, %s %s"', $set['title'], $set['strasse'], $set['hnr'], $set['plz'], $set['ort']));
+                    $this->prtScr("");
                     $wid = $stm->insertId;
                     $set = [
                         "wid"         => $wid,
@@ -345,9 +359,9 @@ class IvmImport
                         "aid"         => $arrAnsprechpartner['id'] ? $arrAnsprechpartner['id'] : 1,
                         "zimmer"      => $value['rooms'],
                         "flaeche"     => $this->formatNumber2($value['space']),
-                        //"warm"        => $this->formatNumber($value['rent_all']),
+                        // "warm"        => $this->formatNumber($value['rent_all']),
                         "warm"        => $this->formatNumber2($value['rent_all']),
-                        //"kalt"        => $this->formatNumber($value['rent']),
+                        // "kalt"        => $this->formatNumber($value['rent']),
                         "kalt"        => $this->formatNumber2($value['rent']),
                         "etage"       => preg_replace("/\.Etage/", "", $value['floor']),
                         "kaution"     => $this->formatNumber2($value['flat_deposit']),
@@ -369,20 +383,25 @@ class IvmImport
                         $set
                     );
 
-                    \Database::getInstance()->prepare("INSERT INTO is_wohnungen %s")->set($set)->execute();
+                    Database::getInstance()
+                        ->prepare("INSERT INTO is_wohnungen %s")
+                        ->set($set)
+                        ->execute();
                 }
 
             }
-
-            echo "\n".count($data['flats'])." Wohnungen importiert\n";
-            \System::log(count($data['flats'])." Wohnungen importiert", __METHOD__, TL_GENERAL);
+            $this->prtScr("");
+            $this->prtScr(count($data['flats'])." Wohnungen importiert");
+            $this->prtScr("");
+            System::log(count($data['flats'])." Wohnungen importiert", __METHOD__, TL_GENERAL);
         } else {
-            echo "\nKeine Wohnungen importiert.\n";
+            $this->prtScr("");
+            $this->prtScr("Keine Wohnungen importiert.");
+            $this->prtScr("");
         }
-
-        echo "\n".sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime)."\n";
-        \System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
-        echo '</pre>';
+        $this->prtScr('');
+        $this->prtScr(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime));
+        System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
         exit();
     }
 
@@ -394,18 +413,27 @@ class IvmImport
     protected function updateTableAnsprechpartner($arrangerNr, array $arrValue)
     {
         // Insert new arranger
-        $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($arrangerNr);
+        $stm = Database::getInstance()
+            ->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")
+            ->limit(1)
+            ->execute($arrangerNr);
         if (!$stm->numRows) {
             $set = [
                 'arrangernr' => (string)$arrangerNr,
             ];
-            $objInsertStmt = \Database::getInstance()->prepare("INSERT INTO is_ansprechpartner %s")->set($set)->execute();
+            $objInsertStmt = Database::getInstance()
+                ->prepare("INSERT INTO is_ansprechpartner %s")
+                ->set($set)
+                ->execute();
             if ($objInsertStmt->affectedRows) {
-                echo "INSERT new record INTO is_ansprechpartner ID ".$objInsertStmt->insertId."<br>";
+                $this->prtScr("INSERT new record INTO is_ansprechpartner ID ".$objInsertStmt->insertId.".");
             }
         }
 
-        $stm = \Database::getInstance()->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")->limit(1)->execute($arrangerNr);
+        $stm = Database::getInstance()
+            ->prepare("SELECT * FROM is_ansprechpartner WHERE arrangernr=?")
+            ->limit(1)
+            ->execute($arrangerNr);
         if ($stm->numRows) {
             // Update arranger
             $arrName = explode(' ', $arrValue['arranger_name']);
@@ -415,7 +443,7 @@ class IvmImport
                 'name'    => $arrName[2],
                 'email'   => $arrValue['arranger_email'],
                 'tel'     => $arrValue['arranger_phone'],
-                //'mobile'  => $value['arranger_phone'], // There is no mobile number submitted?
+                // 'mobile'  => $value['arranger_phone'], // There is no mobile number submitted?
                 'fax'     => $arrValue['arranger_fax'],
             ];
             if (!count($arrName) === 3) {
@@ -424,31 +452,13 @@ class IvmImport
                 $set['name'] = $arrValue['arranger_name'];
             }
 
-            $objInsertStmt = \Database::getInstance()->prepare("UPDATE is_ansprechpartner %s WHERE id=?")->set($set)->execute($stm->id);
+            $objInsertStmt = Database::getInstance()
+                ->prepare("UPDATE is_ansprechpartner %s WHERE id=?")
+                ->set($set)
+                ->execute($stm->id);
             if ($objInsertStmt->affectedRows) {
-                echo "UPDATE is_ansprechpartner WHERE id=".$stm->id."<br>";
+                $this->prtScr("UPDATE is_ansprechpartner WHERE id=".$stm->id);
             }
-        }
-    }
-
-    /**
-     *
-     */
-    protected function extendTables()
-    {
-        // Add columns is_wohnungen.flat_id & is_wohnungen.gallery_img
-        if (!\Database::getInstance()->fieldExists('flat_id', 'is_wohnungen')) {
-            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `flat_id` INT NOT NULL');
-        }
-
-        if (!\Database::getInstance()->fieldExists('gallery_img', 'is_wohnungen')) {
-            \Database::getInstance()->query('ALTER TABLE `is_wohnungen` ADD `gallery_img` BLOB NOT NULL');
-        }
-
-        // Add is_ansprechpartner.arrangernr (extended on 27.11.2019, Marko Cupic)
-        if (!\Database::getInstance()->fieldExists('arrangernr', 'is_ansprechpartner')) {
-            echo 'Added field is_ansprechpartner.arrangernr'.'<br>';
-            \Database::getInstance()->query('ALTER TABLE `is_ansprechpartner` ADD `arrangernr` INT NOT NULL');
         }
     }
 
@@ -459,48 +469,47 @@ class IvmImport
      */
     private function curlFileDownload($curloptFile, $curloptUrl, $curloptTimeout = 30)
     {
-        //Open file handler.
+        // Open file handler.
         $fp = fopen($curloptFile, 'w+');
 
-        //If $fp is FALSE, something went wrong.
         if ($fp === false) {
-            echo sprintf("Konnte Datei: %s nicht öffnen.", $curloptFile)."\n";
+            $this->prtScr(sprintf("Konnte Datei: %s nicht öffnen.", $curloptFile));
 
             return;
         }
 
-        //Create a cURL handle.
+        // Create a cURL handle.
         $ch = curl_init($curloptUrl);
 
-        //Pass our file handle to cURL.
+        // Pass our file handle to cURL.
         curl_setopt($ch, CURLOPT_FILE, $fp);
 
-        //Timeout if the file doesn't download after 20 seconds.
+        // Timeout if the file doesn't download after 20 seconds.
         curl_setopt($ch, CURLOPT_TIMEOUT, $curloptTimeout);
 
-        //Execute the request.
+        // Execute the request.
         curl_exec($ch);
 
         //If there was an error, throw an Exception
         if (curl_errno($ch)) {
-            echo sprintf("Es ist ein Fehler passiert. Konnte Datei: %s nicht öffnen.", $curloptFile)."\n";
+            $this->prtScr(sprintf("Es ist ein Fehler passiert. Konnte Datei: %s nicht öffnen.", $curloptFile));
 
             return;
         }
 
-        //Get the HTTP status code.
+        // Get the HTTP status code.
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        //Close the cURL handler.
+        // Close the cURL handler.
         curl_close($ch);
 
-        //Close the file handler.
+        // Close the file handler.
         fclose($fp);
 
-        if ($statusCode == 200) {
-            //echo 'Downloaded!';
+        if ($statusCode === 200) {
+            // $this->prtScr("Downloaded!");
         } else {
-            echo "Download-Fehler. Status Code: ".$statusCode."\n";
+            $this->prtScr("Download-Fehler. Status Code: ".$statusCode);
         }
     }
 
@@ -525,18 +534,38 @@ class IvmImport
         return $number;
     }
 
-    /**
-     * @param $strArray
-     * @param bool $blnForce
-     * @return array|null|string
-     */
-    private static function deserialize($strArray, $blnForce = false)
+    private function checkTables()
     {
-        if (version_compare(VERSION, 4.0, '<')) {
-            return deserialize($strArray, $blnForce);
-        } else {
-            return \StringUtil::deserialize($strArray, $blnForce);
+        $arrTables = array_keys(TableConfig::getTableData());
+        $arrTableConfig = TableConfig::getTableData();
+
+        foreach ($arrTables as $strTable) {
+            foreach ($arrTableConfig[$strTable] as $type => $fields) {
+                foreach ($fields as $columnname) {
+                    $this->prtScr("Check field exists ".$strTable.".".$columnname);
+                    if (!Database::getInstance()->fieldExists($columnname, $strTable)) {
+                        $query = sprintf(
+                            'ALTER TABLE %s ADD COLUMN %s %s',
+                            $strTable,
+                            $columnname,
+                            $type
+                        );
+                        Database::getInstance()->query($query);
+                        $this->prtScr($query);
+                    } else {
+                        $this->prtScr('...ok!');
+                    }
+                }
+            }
         }
+    }
+
+    private function prtScr(string $strLog)
+    {
+        if (empty(trim((string)$strLog))) {
+            $strLog = "...";
+        }
+        echo "<pre>".$strLog."</pre>";
     }
 }
 

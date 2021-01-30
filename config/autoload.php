@@ -20,6 +20,7 @@ ClassLoader::addNamespace('Markocupic\Ivm');
 ClassLoader::addClasses(array
 (
     // Classes
+    'Markocupic\Ivm\TableConfig'         => 'system/modules/ivm_import/classes/TableConfig.php',
     'Markocupic\Ivm\IvmImport'         => 'system/modules/ivm_import/classes/IvmImport.php',
     'Markocupic\Ivm\IvmTemplateHelper' => 'system/modules/ivm_import/classes/IvmTemplateHelper.php',
 

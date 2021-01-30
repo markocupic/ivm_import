@@ -11,6 +11,9 @@
 
 namespace Markocupic\Ivm;
 
+use Contao\Database;
+use Contao\StringUtil;
+
 /**
  * Class IvmTemplHelper
  * @package Markocupic\Ivm
@@ -30,15 +33,17 @@ class IvmTemplateHelper
 
     /**
      * @param $wid
-     * @return array
+     * @return int|null
      */
-    public static function getFlatIdFromWid($wid)
+    public static function getFlatIdFromWid($wid): ?int
     {
-        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
-        if ($objWohnung->numRows)
-        {
-            return $objWohnung->flat_id;
+        $objWohnung = Database::getInstance()
+            ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
+            ->execute($wid);
+        if ($objWohnung->numRows) {
+            return (int)$objWohnung->flat_id;
         }
+
         return null;
     }
 
@@ -46,27 +51,26 @@ class IvmTemplateHelper
      * @param $wid
      * @return array
      */
-    public static function getGalleryArrayByWid($wid)
+    public static function getGalleryArrayByWid($wid): array
     {
-        $arrGal = array();
-        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE wid=?')->execute($wid);
-        if ($objWohnung->numRows)
-        {
-            $arrGallery = self::deserialize($objWohnung->gallery_img);
-            if (!empty($arrGallery) && is_array($arrGallery))
-            {
-                foreach ($arrGallery as $image)
-                {
-                    $arrGal[] = array(
-                        'flat_id' => $objWohnung->flat_id,
-                        'name'    => $image['name'],
-                        'caption' => $image['info_text'],
-                        'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
-                        'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
-                    );
-                }
+        $arrGal = [];
+        $objWohnung = Database::getInstance()
+            ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
+            ->execute($wid);
+        if ($objWohnung->numRows) {
+            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+
+            foreach ($arrGallery as $image) {
+                $arrGal[] = [
+                    'flat_id' => $objWohnung->flat_id,
+                    'name'    => $image['name'],
+                    'caption' => $image['info_text'],
+                    'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
+                    'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
+                ];
             }
         }
+
         return $arrGal;
     }
 
@@ -74,27 +78,25 @@ class IvmTemplateHelper
      * @param $flatId
      * @return array
      */
-    public static function getGalleryArrayByFlatId($flatId)
+    public static function getGalleryArrayByFlatId($flatId): array
     {
-        $arrGal = array();
-        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')->execute($flatId);
-        if ($objWohnung->numRows)
-        {
-            $arrGallery = self::deserialize($objWohnung->gallery_img);
-            if (!empty($arrGallery) && is_array($arrGallery))
-            {
-                foreach ($arrGallery as $image)
-                {
-                    $arrGal[] = array(
-                        'flat_id' => $objWohnung->flat_id,
-                        'name'    => $image['name'],
-                        'caption' => $image['info_text'],
-                        'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
-                        'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
-                    );
-                }
+        $arrGal = [];
+        $objWohnung = Database::getInstance()
+            ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
+            ->execute($flatId);
+        if ($objWohnung->numRows) {
+            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+            foreach ($arrGallery as $image) {
+                $arrGal[] = [
+                    'flat_id' => $objWohnung->flat_id,
+                    'name'    => $image['name'],
+                    'caption' => $image['info_text'],
+                    'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
+                    'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
+                ];
             }
         }
+
         return $arrGal;
     }
 
@@ -102,35 +104,19 @@ class IvmTemplateHelper
      * @param $flatId
      * @return bool
      */
-    public static function hasGallery($flatId)
+    public static function hasGallery($flatId): bool
     {
-        $objWohnung = \Database::getInstance()->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')->execute($flatId);
-        if ($objWohnung->numRows)
-        {
-            $arrGallery = self::deserialize($objWohnung->gallery_img, true);
-            if (count($arrGallery >= 1))
-            {
+        $objWohnung = Database::getInstance()
+            ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
+            ->execute($flatId);
+        if ($objWohnung->numRows) {
+            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+            if (!empty($arrGallery)) {
                 return true;
             }
         }
-        return false;
-    }
 
-    /**
-     * @param $strArray
-     * @param bool $blnForce
-     * @return array|null|string
-     */
-    private static function deserialize($strArray, $blnForce = false)
-    {
-        if (version_compare(VERSION, 4.0, '<'))
-        {
-            return deserialize($strArray, $blnForce);
-        }
-        else
-        {
-            return \StringUtil::deserialize($strArray, $blnForce);
-        }
+        return false;
     }
 
 }
