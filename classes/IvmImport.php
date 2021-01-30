@@ -65,6 +65,8 @@ class IvmImport
      */
     public function importIvmDatabase($page = '', $blnForce = false, $blnPurgeDownloadFolder = false)
     {
+        $this->prtOpenBodyTag();
+
         $startTime = time();
         $projectDir = System::getContainer()->getParameter('kernel.project_dir');
 
@@ -381,6 +383,8 @@ class IvmImport
         $this->prtScr('');
         $this->prtScr(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime));
         System::log(sprintf('IVM-Importprozess nach %s Sekunden beendet.', time() - $startTime), __METHOD__, TL_GENERAL);
+        $this->prtCloseBodyTag();
+
         exit();
     }
 
@@ -566,6 +570,16 @@ class IvmImport
             $strLog = "...";
         }
         echo "<pre>".$strLog."</pre>";
+    }
+
+    private function prtOpenBodyTag()
+    {
+        echo '<html><body style="background-color:black; color: #06e706; padding:10px">';
+    }
+
+    private function prtCloseBodyTag()
+    {
+        echo '</body></html>';
     }
 }
 
