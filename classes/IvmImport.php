@@ -153,23 +153,16 @@ class IvmImport
 
         // Get Top-Wohnungen
         // $this->>log("Importiere Top-Wohnungen...");
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl."/modules/json/json_search.php");
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt(
-            $ch,
-            CURLOPT_POSTFIELDS,
-            [
+        $curlOpt = [
+            CURLOPT_URL        => $this->jsonIvmUrl."/modules/json/json_search.php",
+            CURLOPT_POSTFIELDS => [
                 'search_page' => 1,
                 'tafel'       => 1,
-            ]
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
+            ],
+        ];
 
         $top_wohnungen = [];
-        $data = json_decode($response, true);
+        $data = json_decode($this->getFromCurl($curlOpt), true);
         $this->prtScr(count($data)." Top-Wohnungen importiert.");
         $this->prtScr("");
         if (!empty($data['flats']) && is_array($data['flats'])) {
@@ -179,21 +172,19 @@ class IvmImport
         }
 
         // Import flats
-        $arrCurlOpt = ['tafel' => 0];
+        $arrCurlPost = ['tafel' => 0];
         if ($this->page != '') {
-            $arrCurlOpt['search_page'] = $this->page;
+            $arrCurlPost['search_page'] = $this->page;
         }
         if (empty($this->page)) {
-            $arrCurlOpt['limit'] = 'all';
+            $arrCurlPost['limit'] = 'all';
         }
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->jsonIvmUrl."/modules/json/json_search.php");
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $arrCurlOpt);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $data = json_decode($response, true);
+        $curlOpt = [
+            CURLOPT_URL        => $this->jsonIvmUrl."/modules/json/json_search.php",
+            CURLOPT_POSTFIELDS => $arrCurlPost,
+        ];
+
+        $data = json_decode($this->getFromCurl($curlOpt), true);
 
         if (is_array($data['flats'])) {
             // $this->prtScr(count($data['flats']) . " Wohnungsangebote werden importiert.");
@@ -203,26 +194,17 @@ class IvmImport
                 $pics = [];
 
                 // Get Details
-                $ch = curl_init();
-                curl_setopt_array(
-                    $ch,
-                    [
-                        CURLOPT_HEADER         => 0,
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_POSTFIELDS     => ['flat_id' => $value['flat_id']],
-                        CURLOPT_TIMEOUT        => 60 * 5,
-                        CURLOPT_URL            => $this->jsonIvmUrl."/modules/json/json_details.php",
-                    ]
-                );
-                $response = curl_exec($ch);
-                curl_close($ch);
+                $curlOpt = [
+                    CURLOPT_POSTFIELDS => ['flat_id' => $value['flat_id']],
+                    CURLOPT_URL        => $this->jsonIvmUrl."/modules/json/json_details.php",
+                ];
 
                 // Get gallery images
-                $objDetails = json_decode($response);
+                $objDetails = json_decode($this->getFromCurl($curlOpt));
                 $gallery_img = urldecode($objDetails->gallery_img);
                 // $this->prtScr("Importiere Galerie: " . $gallery_img . "...");
 
-                // $value['environmet'] thats a typo, but it was made by IVM-Professional ;-);-)
+                // $value['environmet'] this is a typo made by IVM-Professional ;-)
                 $environment = StringUtil::deserialize(urldecode($value['environmet']), true);
                 if (isset($value['image']) && !empty($value['image'])) {
                     if ($this->blnForce || !file_exists($this->imagePath.'/'.$value['image'])) {
@@ -302,9 +284,8 @@ class IvmImport
                     "hnr"             => $value['streetnumber'] ? $value['streetnumber'] : '',
                     "plz"             => $value['zip'],
                     "ort"             => $value['city'],
-                    "nk"              => $this->formatNumber2($value['charges']),
-                    "hk"              => $this->formatNumber2($value['heating']),
-                    // "hk_in" => $value['heating']==0 ? 'Ja' : 'Nein',
+                    "nk"              => $this->formatNumber($value['charges']),
+                    "hk"              => $this->formatNumber($value['heating']),
                     "hk_in"           => 'Ja',
                     "beschr"          => $value['objectdescription'],
                     "beschr_lage"     => $value['district_description'],
@@ -331,8 +312,8 @@ class IvmImport
                     "wg"              => '',
                     "expose"          => 'expose_'.$value['flat_id'].'.pdf',
                     "eausweis"        => $value['flat_enev_ausweisart'] ? $value['flat_enev_ausweisart'] : '',
-                    "everbrauchswert" => $this->formatNumber2($value['flat_enev_verbrauchswert']),
-                    "ebedarfswert"    => $this->formatNumber2($value['flat_enev_ebedarfswert']),
+                    "everbrauchswert" => $this->formatNumber($value['flat_enev_verbrauchswert']),
+                    "ebedarfswert"    => $this->formatNumber($value['flat_enev_ebedarfswert']),
                     "eheizung"        => $value['flat_lights'] ? $value['flat_lights'] : '',
                     "ausstattung"     => join(', ', $environment),
                     "flat_video_link" => strlen((string)$value['flat_video_link']) ? str_replace('embed=', '', (string)$value['flat_video_link']) : '',
@@ -358,13 +339,11 @@ class IvmImport
                         "gid"         => $arr_wohngebiete[$value['district_name']],
                         "aid"         => $arrAnsprechpartner['id'] ? $arrAnsprechpartner['id'] : 1,
                         "zimmer"      => $value['rooms'],
-                        "flaeche"     => $this->formatNumber2($value['space']),
-                        // "warm"        => $this->formatNumber($value['rent_all']),
-                        "warm"        => $this->formatNumber2($value['rent_all']),
-                        // "kalt"        => $this->formatNumber($value['rent']),
-                        "kalt"        => $this->formatNumber2($value['rent']),
+                        "flaeche"     => $this->formatNumber($value['space']),
+                        "warm"        => $this->formatNumber($value['rent_all']),
+                        "kalt"        => $this->formatNumber($value['rent']),
                         "etage"       => preg_replace("/\.Etage/", "", $value['floor']),
-                        "kaution"     => $this->formatNumber2($value['flat_deposit']),
+                        "kaution"     => $this->formatNumber($value['flat_deposit']),
                         "dusche"      => $environment[7] ? "true" : "",
                         "wanne"       => $environment[8] ? "true" : "",
                         "balkon"      => $environment[14] ? "Balkon" : ($environment[16] ? "Terrasse" : ""),
@@ -515,23 +494,44 @@ class IvmImport
 
     /**
      * @param $number
-     * @return float
+     * @return string
      */
-    private function formatNumber($number)
-    {
-        return doubleval(preg_replace("/,/", ".", $number));
-    }
-
-    /**
-     * @param $number
-     * @return float
-     */
-    private function formatNumber2($number)
+    private function formatNumber($number): string
     {
         $number = (string)$number;
         $number = preg_replace("/\./", "", $number);
 
         return $number;
+    }
+
+    private function getFromCurl(array $arrOptions = null): string
+    {
+        $ch = curl_init();
+
+        curl_setopt_array(
+            $ch,
+            [
+                CURLOPT_HEADER         => 0,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POSTFIELDS     => [],
+                CURLOPT_TIMEOUT        => 300,
+                CURLOPT_URL            => null,
+            ]
+        );
+
+        foreach ($arrOptions as $k => $v) {
+            curl_setopt($ch, $k, $v);
+        }
+
+        $response = curl_exec($ch);
+
+        //If there was an error, throw an Exception
+        if (curl_errno($ch)) {
+            throw new \Exception('CURL error!');
+        }
+        curl_close($ch);
+
+        return $response;
     }
 
     private function checkTables()
