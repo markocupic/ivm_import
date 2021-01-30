@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of Marko Cupic IVM Package.
  *
@@ -53,15 +55,16 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByWid($wid): array
     {
-        $arrGal = [];
+        $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
+            ->limit(1)
             ->execute($wid);
         if ($objWohnung->numRows) {
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
 
             foreach ($arrGallery as $image) {
-                $arrGal[] = [
+                $arrImages[] = [
                     'flat_id' => $objWohnung->flat_id,
                     'name'    => $image['name'],
                     'caption' => $image['info_text'],
@@ -71,7 +74,7 @@ class IvmTemplateHelper
             }
         }
 
-        return $arrGal;
+        return $arrImages;
     }
 
     /**
@@ -80,14 +83,16 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByFlatId($flatId): array
     {
-        $arrGal = [];
+        $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
+            ->limit(1)
             ->execute($flatId);
         if ($objWohnung->numRows) {
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+
             foreach ($arrGallery as $image) {
-                $arrGal[] = [
+                $arrImages[] = [
                     'flat_id' => $objWohnung->flat_id,
                     'name'    => $image['name'],
                     'caption' => $image['info_text'],
@@ -97,7 +102,7 @@ class IvmTemplateHelper
             }
         }
 
-        return $arrGal;
+        return $arrImages;
     }
 
     /**
@@ -108,7 +113,30 @@ class IvmTemplateHelper
     {
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
+            ->limit(1)
             ->execute($flatId);
+        if ($objWohnung->numRows) {
+            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
+            if (!empty($arrGallery)) {
+                die('a');
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $flatId
+     * @return bool
+     */
+    public static function hasGalleryByWid($wid): bool
+    {
+        $objWohnung = Database::getInstance()
+            ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
+            ->limit(1)
+            ->execute($wid);
         if ($objWohnung->numRows) {
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
             if (!empty($arrGallery)) {
