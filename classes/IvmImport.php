@@ -273,7 +273,7 @@ class IvmImport
                 }
 
                 if ($arrAnsprechpartner === null || !is_array($arrAnsprechpartner) || !isset($arrAnsprechpartner['id'])) {
-                    $this->prtScr("Kein Ansprechpartner für ".$value['arranger'].' '.$value['arranger_email']);
+                    $this->prtScr("Kein Ansprechpartner für ".$value['arranger'].' '.$value['arranger_email'], true);
                 }
 
                 // Prepare some fields
@@ -456,7 +456,7 @@ class IvmImport
         $fp = fopen($curloptFile, 'w+');
 
         if ($fp === false) {
-            $this->prtScr(sprintf("Konnte Datei: %s nicht öffnen.", $curloptFile));
+            $this->prtScr(sprintf("Konnte Datei: %s nicht öffnen.", $curloptFile), true);
 
             return;
         }
@@ -475,7 +475,7 @@ class IvmImport
 
         //If there was an error, throw an Exception
         if (curl_errno($ch)) {
-            $this->prtScr(sprintf("Es ist ein Fehler passiert. Konnte Datei: %s nicht öffnen.", $curloptFile));
+            $this->prtScr(sprintf("Es ist ein Fehler passiert. Konnte Datei: %s nicht öffnen.", $curloptFile), true);
 
             return;
         }
@@ -492,7 +492,7 @@ class IvmImport
         if ($statusCode === 200) {
             // $this->prtScr("Downloaded!");
         } else {
-            $this->prtScr("Download-Fehler. Status Code: ".$statusCode);
+            $this->prtScr("Download-Fehler. Status Code: ".$statusCode, true);
         }
     }
 
@@ -564,12 +564,12 @@ class IvmImport
         }
     }
 
-    private function prtScr(string $strLog)
+    private function prtScr(string $strLog, bool $isError = false)
     {
         if (empty(trim((string)$strLog))) {
             $strLog = "...";
         }
-        echo "<pre>".$strLog."</pre>";
+        echo $isError ? "<pre style='color:#ff9a9a'>".$strLog."</pre>" : "<pre>".$strLog."</pre>";
     }
 
     private function prtOpenBodyTag()
