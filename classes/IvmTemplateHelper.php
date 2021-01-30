@@ -15,6 +15,7 @@ namespace Markocupic\Ivm;
 
 use Contao\Database;
 use Contao\StringUtil;
+use Contao\System;
 
 /**
  * Class IvmTemplHelper
@@ -43,7 +44,7 @@ class IvmTemplateHelper
             ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
             ->execute($wid);
         if ($objWohnung->numRows) {
-            return (int)$objWohnung->flat_id;
+            return (int)$objWohnung->flat_id; 
         }
 
         return null;
@@ -55,6 +56,7 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByWid($wid): array
     {
+        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
         $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
@@ -64,13 +66,17 @@ class IvmTemplateHelper
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
 
             foreach ($arrGallery as $image) {
-                $arrImages[] = [
-                    'flat_id' => $objWohnung->flat_id,
-                    'name'    => $image['name'],
-                    'caption' => $image['info_text'],
-                    'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
-                    'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
-                ];
+                $path = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']);
+                $thumb = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']);
+                if (file_exists($projectDir.'/'.$path) && file_exists($projectDir.'/'.$thumb)) {
+                    $arrImages[] = [
+                        'flat_id' => $objWohnung->flat_id,
+                        'name'    => $image['name'],
+                        'caption' => $image['info_text'],
+                        'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
+                        'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
+                    ];
+                }
             }
         }
 
@@ -83,6 +89,7 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByFlatId($flatId): array
     {
+        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
         $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
@@ -92,13 +99,17 @@ class IvmTemplateHelper
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
 
             foreach ($arrGallery as $image) {
-                $arrImages[] = [
-                    'flat_id' => $objWohnung->flat_id,
-                    'name'    => $image['name'],
-                    'caption' => $image['info_text'],
-                    'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
-                    'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
-                ];
+                $path = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']);
+                $thumb = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']);
+                if (file_exists($projectDir.'/'.$path) && file_exists($projectDir.'/'.$thumb)) {
+                    $arrImages[] = [
+                        'flat_id' => $objWohnung->flat_id,
+                        'name'    => $image['name'],
+                        'caption' => $image['info_text'],
+                        'path'    => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']),
+                        'thumb'   => sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']),
+                    ];
+                }
             }
         }
 
@@ -109,19 +120,10 @@ class IvmTemplateHelper
      * @param $flatId
      * @return bool
      */
-    public static function hasGallery($flatId): bool
+    public static function hasGalleryByFlatId($flatId): bool
     {
-        $objWohnung = Database::getInstance()
-            ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
-            ->limit(1)
-            ->execute($flatId);
-        if ($objWohnung->numRows) {
-            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
-            if (!empty($arrGallery)) {
-                die('a');
-
-                return true;
-            }
+        if (count(static::getGalleryArrayByFlatId($flatId)) > 0) {
+            return true;
         }
 
         return false;
@@ -133,15 +135,8 @@ class IvmTemplateHelper
      */
     public static function hasGalleryByWid($wid): bool
     {
-        $objWohnung = Database::getInstance()
-            ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
-            ->limit(1)
-            ->execute($wid);
-        if ($objWohnung->numRows) {
-            $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
-            if (!empty($arrGallery)) {
-                return true;
-            }
+        if (count(static::getGalleryArrayByWid($wid)) > 0) {
+            return true;
         }
 
         return false;
