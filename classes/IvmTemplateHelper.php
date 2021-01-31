@@ -15,7 +15,6 @@ namespace Markocupic\Ivm;
 
 use Contao\Database;
 use Contao\StringUtil;
-use Contao\System;
 
 /**
  * Class IvmTemplHelper
@@ -44,7 +43,7 @@ class IvmTemplateHelper
             ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
             ->execute($wid);
         if ($objWohnung->numRows) {
-            return (int)$objWohnung->flat_id; 
+            return (int)$objWohnung->flat_id;
         }
 
         return null;
@@ -56,7 +55,6 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByWid($wid): array
     {
-        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
         $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE wid=?')
@@ -64,11 +62,10 @@ class IvmTemplateHelper
             ->execute($wid);
         if ($objWohnung->numRows) {
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
-
             foreach ($arrGallery as $image) {
                 $path = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']);
                 $thumb = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']);
-                if (file_exists($projectDir.'/'.$path) && file_exists($projectDir.'/'.$thumb)) {
+                if (fopen($path, 'r') && fopen($thumb, 'r')) {
                     $arrImages[] = [
                         'flat_id' => $objWohnung->flat_id,
                         'name'    => $image['name'],
@@ -89,7 +86,6 @@ class IvmTemplateHelper
      */
     public static function getGalleryArrayByFlatId($flatId): array
     {
-        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
         $arrImages = [];
         $objWohnung = Database::getInstance()
             ->prepare('SELECT * FROM is_wohnungen WHERE flat_id=?')
@@ -97,11 +93,10 @@ class IvmTemplateHelper
             ->execute($flatId);
         if ($objWohnung->numRows) {
             $arrGallery = StringUtil::deserialize($objWohnung->gallery_img, true);
-
             foreach ($arrGallery as $image) {
                 $path = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'img', $image['name']);
                 $thumb = sprintf(static::$remoteGalleryFolder, $objWohnung->flat_id, 'th', $image['name']);
-                if (file_exists($projectDir.'/'.$path) && file_exists($projectDir.'/'.$thumb)) {
+                if (fopen($path, 'r') && fopen($thumb, 'r')) {
                     $arrImages[] = [
                         'flat_id' => $objWohnung->flat_id,
                         'name'    => $image['name'],
