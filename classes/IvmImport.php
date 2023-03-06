@@ -66,6 +66,7 @@ class IvmImport
      */
     public function importIvmDatabase($page = '', $blnForce = false, $blnPurgeDownloadFolder = false)
     {
+
         $this->prtOpenBodyTag();
 
         $startTime = time();
@@ -302,8 +303,8 @@ class IvmImport
                     'hnr'             => $value['streetnumber'] ? $value['streetnumber'] : '',
                     'plz'             => $value['zip'],
                     'ort'             => $value['city'],
-                    'nk'              => $this->formatNumber($value['charges']),
-                    'hk'              => $this->formatNumber($value['heating']),
+                    'nk'              => $this->formatToCents($value['charges']),
+                    'hk'              => $this->formatToCents($value['heating']),
                     'hk_in'           => 'Ja',
                     'beschr'          => $value['objectdescription'],
                     'beschr_lage'     => $value['district_description'],
@@ -330,8 +331,8 @@ class IvmImport
                     'wg'              => '',
                     'expose'          => 'expose_'.$value['flat_id'].'.pdf',
                     'eausweis'        => $value['flat_enev_ausweisart'] ? $value['flat_enev_ausweisart'] : '',
-                    'everbrauchswert' => $this->formatNumber($value['flat_enev_verbrauchswert']),
-                    'ebedarfswert'    => $this->formatNumber($value['flat_enev_ebedarfswert']),
+                    'everbrauchswert' => $this->formatToCents($value['flat_enev_verbrauchswert']),
+                    'ebedarfswert'    => $this->formatToCents($value['flat_enev_ebedarfswert']),
                     'eheizung'        => $value['flat_lights'] ? $value['flat_lights'] : '',
                     'ausstattung'     => implode(', ', $environment),
                     'flat_video_link' => strlen((string)$value['flat_video_link']) ? str_replace('embed=', '', (string)$value['flat_video_link']) : '',
@@ -359,6 +360,7 @@ class IvmImport
                     ->prepare('INSERT INTO is_details %s')
                     ->set($set)
                     ->execute();
+
                 if ($stm->affectedRows) {
                     $wid = $stm->insertId;
                     $set = [
@@ -366,11 +368,11 @@ class IvmImport
                         'gid'         => $arr_wohngebiete[$value['district_name']],
                         'aid'         => $arrAnsprechpartner['id'] ? $arrAnsprechpartner['id'] : 1,
                         'zimmer'      => $value['rooms'],
-                        'flaeche'     => $this->formatNumber($value['space']),
-                        'warm'        => $this->formatNumber($value['rent_all']),
-                        'kalt'        => $this->formatNumber($value['rent']),
+                        'flaeche'     => $this->convertStringToRoundedNumber($value['space'], 0), // convert 36,60 -> 37 or 34,42 -> 34
+                        'warm'        => $this->formatToCents($value['rent_all']),
+                        'kalt'        => $this->formatToCents($value['rent']),
                         'etage'       => preg_replace('/\.Etage/', '', $value['floor']),
-                        'kaution'     => $this->formatNumber($value['flat_deposit']),
+                        'kaution'     => $this->formatToCents($value['flat_deposit']),
                         'dusche'      => $environment[7] ? 'true' : '',
                         'wanne'       => $environment[8] ? 'true' : '',
                         'balkon'      => $environment[14] ? 'Balkon' : ($environment[16] ? 'Terrasse' : ''),
@@ -595,15 +597,39 @@ class IvmImport
     }
 
     /**
+     * Convert string value, e.g.
+     * 36,60 to 3660
+     *
      * @param $number
      * @return string
      */
-    private function formatNumber($number): string
+    private function formatToCents($number): string
     {
         $number = (string)$number;
         $number = preg_replace('/\./', '', $number);
 
         return $number;
+    }
+
+    /**
+     * Convert string value, e.g.
+     * 36,60 to 37 (precision = 0)
+     * or
+     * 34,42 -> 34.4 (precision = 1)
+     *
+     * @param $string
+     * @param int $precision
+     * @return float|int
+     */
+    private function convertStringToRoundedNumber($string, int $precision = 0)
+    {
+        $string = str_replace(',', '.', (string)$string);
+
+        if ($precision === 0) {
+            return (int)round((float)$string, $precision);
+        }
+
+        return round((float)$string, $precision);
     }
 
     private function prtCloseBodyTag()

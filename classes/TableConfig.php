@@ -29,6 +29,7 @@ class TableConfig
                     "aid",
                     "wid",
                     "flat_id",
+                    "flaeche",
                 ],
                 "tinyint(1) NOT NULL"                      => [
                     "top",
@@ -45,7 +46,6 @@ class TableConfig
                 "float"                                    => [
                     "zimmer",
                     "baeder",
-                    "flaeche",
                     "warm",
                     "kalt",
                     "kaution",
